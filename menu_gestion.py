@@ -2,10 +2,10 @@ import sqlite3
 
 # Connexion à la base de données
 def connect_db():
-    return sqlite3.connect('epic_events.db')
+    return sqlite3.connect('epic_crm.db')
 
 # Menu principal pour les gestionnaires
-def afficher_menu_gestion():
+def afficher_menu_gestion(utilisateur):
     while True:
         print("\n=== Menu Gestion ===")
         print("1. Créer un collaborateur")
@@ -28,7 +28,7 @@ def afficher_menu_gestion():
         elif choix == '5':
             filtrer_evenements()
         elif choix == '6':
-            break  # Retourne au menu principal
+            break
         else:
             print("Choix invalide. Veuillez réessayer.")
 
@@ -59,17 +59,26 @@ def mettre_a_jour_collaborateur():
 
     print("=== Mise à jour d'un collaborateur ===")
     collaborator_id = input("ID du collaborateur à mettre à jour: ")
+
+    # Vérifier s'il existe
+    cursor.execute("SELECT * FROM user WHERE id = ?", (collaborator_id,))
+    user = cursor.fetchone()
+
+    if not user:
+        print("Aucun collaborateur avec cet ID.")
+        conn.close()
+        return
+
     name = input("Nouveau nom (laisser vide pour ne pas modifier): ")
     email = input("Nouveau email (laisser vide pour ne pas modifier): ")
 
-    # Mettre à jour uniquement les champs non vides
     if name:
         cursor.execute("UPDATE user SET name = ? WHERE id = ?", (name, collaborator_id))
     if email:
         cursor.execute("UPDATE user SET email = ? WHERE id = ?", (email, collaborator_id))
 
     conn.commit()
-    print("Collaborateur mis à jour avec succès !")
+    print("Collaborateur mis à jour avec succès.")
     conn.close()
 
 # Fonction pour afficher tous les collaborateurs
@@ -81,8 +90,11 @@ def afficher_collaborateurs():
     cursor.execute("SELECT * FROM user")
     users = cursor.fetchall()
 
-    for user in users:
-        print(f"ID: {user[0]}, Nom: {user[1]}, Email: {user[2]}, Rôle: {user[3]}")
+    if not users:
+        print("Aucun collaborateur trouvé.")
+    else:
+        for user in users:
+            print(f"ID: {user[0]}, Nom: {user[1]}, Email: {user[2]}, Rôle: {user[4]}")
 
     conn.close()
 
@@ -120,7 +132,10 @@ def filtrer_evenements():
     cursor.execute("SELECT * FROM event WHERE start_date >= ?", (filtre,))
     events = cursor.fetchall()
 
-    for event in events:
-        print(f"ID: {event[0]}, Contract ID: {event[1]}, Start: {event[3]}, Location: {event[5]}")
+    if not events:
+        print("Aucun événement trouvé pour cette date.")
+    else:
+        for event in events:
+            print(f"ID: {event[0]}, Contract ID: {event[1]}, Start: {event[3]}, Location: {event[5]}")
 
     conn.close()
