@@ -2,7 +2,7 @@ import sqlite3
 import getpass
 import bcrypt  # à installer avec pip install bcrypt
 
-DB_PATH = 'epicevents.db'
+DB_PATH = 'epic_crm.db'
 
 def connecter_utilisateur():
     email = input("Email : ").strip()
