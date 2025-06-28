@@ -135,13 +135,18 @@ def afficher_clients(utilisateur):
     conn = connect_db()
     cursor = conn.cursor()
 
-    print("=== Vos clients ===")
+    print("=== Liste des clients ===")
     cursor.execute("SELECT * FROM client WHERE commercial_id = ?", (utilisateur['id'],))
     clients = cursor.fetchall()
 
-    for client in clients:
-        print(f"ID: {client[0]}, Nom: {client[1]}, Email: {client[2]}, Entreprise: {client[4]}")
+    if not clients:
+        print("Aucun client trouvé.")
+    else:
+        for client in clients:
+            print(f"ID: {client[0]}, Nom: {client[1]}, Email: {client[2]}, Entreprise: {client[4]}")
+
     conn.close()
+
 
 
 # Fonction pour afficher uniquement les contrats du commercial
@@ -149,10 +154,15 @@ def afficher_contrats(utilisateur):
     conn = connect_db()
     cursor = conn.cursor()
 
-    print("=== Vos contrats ===")
+    print("=== Liste des contrats ===")
     cursor.execute("SELECT * FROM contract WHERE commercial_id = ?", (utilisateur['id'],))
     contrats = cursor.fetchall()
 
-    for contrat in contrats:
-        print(f"ID: {contrat[0]}, Client ID: {contrat[1]}, Montant: {contrat[3]}, Restant à payer: {contrat[4]}, Signé: {bool(contrat[6])}")
+    if not contrats:
+        print("Aucun contrat trouvé.")
+    else:
+        for contrat in contrats:
+            print(f"ID: {contrat[0]}, Client ID: {contrat[1]}, Montant total: {contrat[3]}, Montant dû: {contrat[4]}, Signé: {'Oui' if contrat[6] else 'Non'}")
+
     conn.close()
+
