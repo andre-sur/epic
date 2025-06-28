@@ -1,6 +1,6 @@
 import os
 import menu_commercial, menu_commercial_rich
-import menu_gestion
+import menu_gestion, menu_gestion_rich
 import menu_support
 
 # Fonction pour afficher le menu principal
@@ -41,7 +41,7 @@ def main():
     if role == 'commercial':
         menu_commercial_rich.afficher_menu_commercial(utilisateur)
     elif role == 'gestion':
-        menu_gestion.afficher_menu_gestion(utilisateur)
+        menu_gestion_rich.afficher_menu_gestion(utilisateur)
     elif role == 'support':
         menu_support.afficher_menu_support(utilisateur)
     else:
