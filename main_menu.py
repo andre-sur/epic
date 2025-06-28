@@ -1,5 +1,5 @@
 import os
-import menu_commercial
+import menu_commercial, menu_commercial_rich
 import menu_gestion
 import menu_support
 
@@ -39,7 +39,7 @@ def main():
     role = utilisateur['role']
 
     if role == 'commercial':
-        menu_commercial.afficher_menu_commercial(utilisateur)
+        menu_commercial_rich.afficher_menu_commercial(utilisateur)
     elif role == 'gestion':
         menu_gestion.afficher_menu_gestion(utilisateur)
     elif role == 'support':
