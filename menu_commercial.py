@@ -2,7 +2,7 @@ import sqlite3
 
 # Connexion à la base de données
 def connect_db():
-    return sqlite3.connect('epic_events.db')
+    return sqlite3.connect('epic_crm.db')
 
 
 # Fonction pour afficher le menu commercial (avec utilisateur connecté)
