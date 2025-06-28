@@ -4,36 +4,38 @@ import sqlite3
 def connect_db():
     return sqlite3.connect('epic_events.db')
 
-# Fonction pour afficher le menu commercial
-def afficher_menu_commercial():
+
+# Fonction pour afficher le menu commercial (avec utilisateur connecté)
+def afficher_menu_commercial(utilisateur):
     while True:
-        print("\n=== Menu Commercial ===")
+        print(f"\n=== Menu Commercial – Bienvenue {utilisateur['name']} ===")
         print("1. Créer un client")
         print("2. Modifier un client")
         print("3. Créer un contrat")
-        print("4. Afficher tous les clients")
-        print("5. Afficher tous les contrats")
+        print("4. Afficher vos clients")
+        print("5. Afficher vos contrats")
         print("6. Retour au menu principal")
 
         choix = input("Veuillez entrer votre choix: ")
 
         if choix == '1':
-            creer_client()
+            creer_client(utilisateur)
         elif choix == '2':
-            modifier_client()
+            modifier_client(utilisateur)
         elif choix == '3':
-            creer_contrat()
+            creer_contrat(utilisateur)
         elif choix == '4':
-            afficher_clients()
+            afficher_clients(utilisateur)
         elif choix == '5':
-            afficher_contrats()
+            afficher_contrats(utilisateur)
         elif choix == '6':
-            break  # Retourne au menu principal
+            break
         else:
             print("Choix invalide. Veuillez réessayer.")
 
+
 # Fonction pour créer un client
-def creer_client():
+def creer_client(utilisateur):
     conn = connect_db()
     cursor = conn.cursor()
 
@@ -44,7 +46,7 @@ def creer_client():
     company_name = input("Nom de l'entreprise: ")
     created_date = input("Date de création (AAAA-MM-JJ): ")
     last_contact_date = input("Date du dernier contact (AAAA-MM-JJ): ")
-    commercial_id = input("ID du commercial associé: ")
+    commercial_id = utilisateur['id']  # Récupéré automatiquement
 
     cursor.execute("""
         INSERT INTO client (full_name, email, phone, company_name, created_date, last_contact_date, commercial_id)
@@ -55,13 +57,34 @@ def creer_client():
     print("Client ajouté avec succès !")
     conn.close()
 
-# Fonction pour modifier un client
-def modifier_client():
+
+# Fonction pour modifier un client uniquement s'il est lié au commercial
+def modifier_client(utilisateur):
     conn = connect_db()
     cursor = conn.cursor()
 
     print("=== Modification d'un client ===")
     client_id = input("ID du client à modifier: ")
+
+    # Vérifie si le client existe
+    cursor.execute("SELECT * FROM client WHERE id = ?", (client_id,))
+    client_existe = cursor.fetchone()
+
+    if not client_existe:
+        print("Ce client n'existe pas.")
+        conn.close()
+        return
+
+    # Vérifie que le client appartient bien à ce commercial
+    cursor.execute("SELECT * FROM client WHERE id = ? AND commercial_id = ?", (client_id, utilisateur['id']))
+    client = cursor.fetchone()
+
+    if not client:
+        print("Vous n'avez pas la permission de modifier ce client.")
+        conn.close()
+        return
+
+    # Modification possible
     full_name = input("Nouveau nom complet (laisser vide pour ne pas modifier): ")
     email = input("Nouvel email (laisser vide pour ne pas modifier): ")
 
@@ -74,14 +97,24 @@ def modifier_client():
     print("Client modifié avec succès !")
     conn.close()
 
+
 # Fonction pour créer un contrat
-def creer_contrat():
+def creer_contrat(utilisateur):
     conn = connect_db()
     cursor = conn.cursor()
 
     print("=== Création d'un contrat ===")
     client_id = input("ID du client associé au contrat: ")
-    commercial_id = input("ID du commercial associé au contrat: ")
+
+    # Vérifie que le client est bien lié à ce commercial
+    cursor.execute("SELECT * FROM client WHERE id = ? AND commercial_id = ?", (client_id, utilisateur['id']))
+    client = cursor.fetchone()
+    if not client:
+        print("Ce client ne vous est pas associé. Vous ne pouvez pas créer de contrat pour lui.")
+        conn.close()
+        return
+
+    commercial_id = utilisateur['id']
     total_amount = float(input("Montant total du contrat: "))
     amount_due = float(input("Montant restant à payer: "))
     created_date = input("Date de création (AAAA-MM-JJ): ")
@@ -96,30 +129,30 @@ def creer_contrat():
     print("Contrat créé avec succès !")
     conn.close()
 
-# Fonction pour afficher tous les clients
-def afficher_clients():
+
+# Fonction pour afficher uniquement les clients du commercial
+def afficher_clients(utilisateur):
     conn = connect_db()
     cursor = conn.cursor()
 
-    print("=== Liste des clients ===")
-    cursor.execute("SELECT * FROM client")
+    print("=== Vos clients ===")
+    cursor.execute("SELECT * FROM client WHERE commercial_id = ?", (utilisateur['id'],))
     clients = cursor.fetchall()
 
     for client in clients:
-        print(f"ID: {client[0]}, Nom: {client[1]}, Email: {client[2]}, Entreprise: {client[3]}")
-
+        print(f"ID: {client[0]}, Nom: {client[1]}, Email: {client[2]}, Entreprise: {client[4]}")
     conn.close()
 
-# Fonction pour afficher tous les contrats
-def afficher_contrats():
+
+# Fonction pour afficher uniquement les contrats du commercial
+def afficher_contrats(utilisateur):
     conn = connect_db()
     cursor = conn.cursor()
 
-    print("=== Liste des contrats ===")
-    cursor.execute("SELECT * FROM contract")
+    print("=== Vos contrats ===")
+    cursor.execute("SELECT * FROM contract WHERE commercial_id = ?", (utilisateur['id'],))
     contrats = cursor.fetchall()
 
     for contrat in contrats:
-        print(f"ID: {contrat[0]}, Client ID: {contrat[1]}, Commercial ID: {contrat[2]}, Montant total: {contrat[3]}")
-
+        print(f"ID: {contrat[0]}, Client ID: {contrat[1]}, Montant: {contrat[3]}, Restant à payer: {contrat[4]}, Signé: {bool(contrat[6])}")
     conn.close()
