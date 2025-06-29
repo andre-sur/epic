@@ -5,6 +5,7 @@ CREATE TABLE user (
     email TEXT UNIQUE NOT NULL,
     password TEXT NOT NULL,
     role TEXT CHECK(role IN ('gestion', 'commercial', 'support')) NOT NULL
+    token TEXT UNIQUE
 );
 
 -- Table des clients

@@ -1,6 +1,6 @@
 import sqlite3
 import click
-from auth import connecter_utilisateur  # <-- Importation de la fonction d'authentification
+from auth import connecter_utilisateur
 
 def connect_db():
     return sqlite3.connect('epic_crm.db')
@@ -8,19 +8,18 @@ def connect_db():
 @click.group()
 @click.pass_context
 def cli(ctx):
-    """Interface CLI pour le menu commercial (avec authentification)."""
+    """Interface CLI du commercial avec authentification."""
     utilisateur = connecter_utilisateur()
-    if not utilisateur:
-        click.echo("❌ Authentification échouée. Fin du programme.")
+    if not utilisateur or utilisateur['role'] != 'commercial':
+        click.echo("⛔️ Accès refusé. Seuls les commerciaux peuvent utiliser cette interface.")
         ctx.exit()
-    ctx.ensure_object(dict)
-    ctx.obj['user'] = utilisateur
+    ctx.obj = {'user_id': utilisateur['id']}
 
 @cli.command()
 @click.pass_context
 def creer_client(ctx):
     """Créer un client."""
-    user_id = ctx.obj['user']['id']
+    user_id = ctx.obj['user_id']
     conn = connect_db()
     cursor = conn.cursor()
 
@@ -43,7 +42,7 @@ def creer_client(ctx):
 @click.pass_context
 def modifier_client(ctx):
     """Modifier un client (appartenant au commercial)."""
-    user_id = ctx.obj['user']['id']
+    user_id = ctx.obj['user_id']
     conn = connect_db()
     cursor = conn.cursor()
 
@@ -79,7 +78,7 @@ def modifier_client(ctx):
 @click.pass_context
 def creer_contrat(ctx):
     """Créer un contrat pour un client lié au commercial."""
-    user_id = ctx.obj['user']['id']
+    user_id = ctx.obj['user_id']
     conn = connect_db()
     cursor = conn.cursor()
 
@@ -87,14 +86,14 @@ def creer_contrat(ctx):
     cursor.execute("SELECT * FROM client WHERE id = ? AND commercial_id = ?", (client_id, user_id))
     client = cursor.fetchone()
     if not client:
-        click.echo("❌ Ce client ne vous est pas associé. Vous ne pouvez pas créer de contrat pour lui.")
+        click.echo("❌ Ce client ne vous est pas associé.")
         conn.close()
         return
 
     total_amount = click.prompt("Montant total du contrat", type=float)
     amount_due = click.prompt("Montant restant à payer", type=float)
     created_date = click.prompt("Date de création (AAAA-MM-JJ)")
-    is_signed = click.prompt("Le contrat est-il signé ? (0 = non, 1 = oui)", type=click.Choice(['0','1']), show_choices=True)
+    is_signed = click.prompt("Le contrat est-il signé ? (0 = non, 1 = oui)", type=click.Choice(['0', '1']))
 
     cursor.execute("""
         INSERT INTO contract (client_id, commercial_id, total_amount, amount_due, created_date, is_signed)
@@ -109,7 +108,7 @@ def creer_contrat(ctx):
 @click.pass_context
 def afficher_clients(ctx):
     """Afficher les clients liés au commercial."""
-    user_id = ctx.obj['user']['id']
+    user_id = ctx.obj['user_id']
     conn = connect_db()
     cursor = conn.cursor()
 
@@ -129,7 +128,7 @@ def afficher_clients(ctx):
 @click.pass_context
 def afficher_contrats(ctx):
     """Afficher les contrats liés au commercial."""
-    user_id = ctx.obj['user']['id']
+    user_id = ctx.obj['user_id']
     conn = connect_db()
     cursor = conn.cursor()
 
