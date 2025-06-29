@@ -1,22 +1,26 @@
 import sqlite3
 import click
+from auth import connecter_utilisateur  # <-- Importation de la fonction d'authentification
 
 def connect_db():
     return sqlite3.connect('epic_crm.db')
 
 @click.group()
-@click.option('--user-id', required=True, type=int, help="ID de l'utilisateur (commercial)")
 @click.pass_context
-def cli(ctx, user_id):
-    """Interface CLI pour le menu commercial."""
+def cli(ctx):
+    """Interface CLI pour le menu commercial (avec authentification)."""
+    utilisateur = connecter_utilisateur()
+    if not utilisateur:
+        click.echo("❌ Authentification échouée. Fin du programme.")
+        ctx.exit()
     ctx.ensure_object(dict)
-    ctx.obj['user_id'] = user_id
+    ctx.obj['user'] = utilisateur
 
 @cli.command()
 @click.pass_context
 def creer_client(ctx):
     """Créer un client."""
-    user_id = ctx.obj['user_id']
+    user_id = ctx.obj['user']['id']
     conn = connect_db()
     cursor = conn.cursor()
 
@@ -26,12 +30,11 @@ def creer_client(ctx):
     company_name = click.prompt("Nom de l'entreprise", default="", show_default=False)
     created_date = click.prompt("Date de création (AAAA-MM-JJ)", default="", show_default=False)
     last_contact_date = click.prompt("Date du dernier contact (AAAA-MM-JJ)", default="", show_default=False)
-    commercial_id = user_id
 
     cursor.execute("""
         INSERT INTO client (full_name, email, phone, company_name, created_date, last_contact_date, commercial_id)
         VALUES (?, ?, ?, ?, ?, ?, ?)
-    """, (full_name, email, phone, company_name, created_date, last_contact_date, commercial_id))
+    """, (full_name, email, phone, company_name, created_date, last_contact_date, user_id))
     conn.commit()
     conn.close()
     click.echo("✅ Client ajouté avec succès !")
@@ -40,7 +43,7 @@ def creer_client(ctx):
 @click.pass_context
 def modifier_client(ctx):
     """Modifier un client (appartenant au commercial)."""
-    user_id = ctx.obj['user_id']
+    user_id = ctx.obj['user']['id']
     conn = connect_db()
     cursor = conn.cursor()
 
@@ -76,7 +79,7 @@ def modifier_client(ctx):
 @click.pass_context
 def creer_contrat(ctx):
     """Créer un contrat pour un client lié au commercial."""
-    user_id = ctx.obj['user_id']
+    user_id = ctx.obj['user']['id']
     conn = connect_db()
     cursor = conn.cursor()
 
@@ -106,7 +109,7 @@ def creer_contrat(ctx):
 @click.pass_context
 def afficher_clients(ctx):
     """Afficher les clients liés au commercial."""
-    user_id = ctx.obj['user_id']
+    user_id = ctx.obj['user']['id']
     conn = connect_db()
     cursor = conn.cursor()
 
@@ -126,7 +129,7 @@ def afficher_clients(ctx):
 @click.pass_context
 def afficher_contrats(ctx):
     """Afficher les contrats liés au commercial."""
-    user_id = ctx.obj['user_id']
+    user_id = ctx.obj['user']['id']
     conn = connect_db()
     cursor = conn.cursor()
 
@@ -145,4 +148,3 @@ def afficher_contrats(ctx):
 
 if __name__ == "__main__":
     cli()
-python epic_cli.py --user-id 1 creer-client
