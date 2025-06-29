@@ -1,60 +1,90 @@
 import sqlite3
+from rich.console import Console
+from rich.table import Table
+from rich.prompt import Prompt
 
-# Connexion à la base de données
+console = Console()
+
 def connect_db():
     return sqlite3.connect('epic_events.db')
 
-# Menu principal pour les supports
-def afficher_menu_support():
+def afficher_menu_support(utilisateur):
     while True:
-        print("\n=== Menu Support ===")
-        print("1. Voir les événements qui me sont attribués")
-        print("2. Mettre à jour un événement")
-        print("3. Afficher tous les événements")
-        print("4. Retour au menu principal")
+        console.clear()
+        console.rule(f"[bold cyan]Menu Support – Bienvenue {utilisateur['name']}[/bold cyan]")
 
-        choix = input("Veuillez entrer votre choix: ")
+        table = Table(show_header=False, show_edge=False)
+        table.add_row("1.", "Voir mes événements")
+        table.add_row("2.", "Mettre à jour un événement")
+        table.add_row("3.", "Afficher tous les événements")
+        table.add_row("4.", "Retour au menu principal")
+        console.print(table)
 
-        if choix == '1':
-            voir_evenements_attribues()
-        elif choix == '2':
-            mettre_a_jour_evenement()
-        elif choix == '3':
+        choix = Prompt.ask("Veuillez entrer votre choix", choices=["1", "2", "3", "4"])
+
+        if choix == "1":
+            voir_evenements_attribues(utilisateur)
+        elif choix == "2":
+            mettre_a_jour_evenement(utilisateur)
+        elif choix == "3":
             afficher_evenements()
-        elif choix == '4':
-            break  # Retourne au menu principal
-        else:
-            print("Choix invalide. Veuillez réessayer.")
+        elif choix == "4":
+            break
 
-# Fonction pour voir les événements attribués au support
-def voir_evenements_attribues():
-    support_id = 1  # ID de l'utilisateur actuellement connecté (assurez-vous de le gérer dans un vrai cas)
+def voir_evenements_attribues(utilisateur):
+    console.print(f"[bold green]=== Vos événements (Support ID: {utilisateur['id']}) ===[/bold green]")
 
     conn = connect_db()
     cursor = conn.cursor()
-
-    print(f"=== Événements attribués au support ID: {support_id} ===")
-    cursor.execute("SELECT * FROM event WHERE support_id = ?", (support_id,))
+    cursor.execute("SELECT id, contract_id, start_date, end_date, location FROM event WHERE support_id = ?", (utilisateur['id'],))
     events = cursor.fetchall()
-
-    for event in events:
-        print(f"ID: {event[0]}, Contract ID: {event[1]}, Start: {event[3]}, Location: {event[5]}")
-
     conn.close()
 
-# Fonction pour mettre à jour un événement
-def mettre_a_jour_evenement():
-    event_id = input("ID de l'événement à mettre à jour: ")
+    if not events:
+        console.print("[yellow]Aucun événement trouvé.[/yellow]")
+    else:
+        table = Table(title="Événements attribués", header_style="bold magenta")
+        table.add_column("ID", style="dim", width=6)
+        table.add_column("Contrat ID")
+        table.add_column("Début")
+        table.add_column("Fin")
+        table.add_column("Lieu")
+
+        for e in events:
+            table.add_row(str(e[0]), str(e[1]), e[2], e[3], e[4])
+        console.print(table)
+
+    console.input("Appuyez sur Entrée pour continuer...")
+
+def mettre_a_jour_evenement(utilisateur):
+    console.print("[bold green]=== Mise à jour d'un événement ===[/bold green]")
+    event_id = Prompt.ask("ID de l'événement à mettre à jour")
 
     conn = connect_db()
     cursor = conn.cursor()
 
-    print("=== Mise à jour d'un événement ===")
-    start_date = input("Nouvelle date de début (laisser vide pour ne pas modifier): ")
-    end_date = input("Nouvelle date de fin (laisser vide pour ne pas modifier): ")
-    location = input("Nouveau lieu (laisser vide pour ne pas modifier): ")
+    # Vérifier si l'événement existe
+    cursor.execute("SELECT * FROM event WHERE id = ?", (event_id,))
+    event = cursor.fetchone()
+    if not event:
+        console.print("[red]Erreur : Aucun événement avec cet ID.[/red]")
+        conn.close()
+        console.input("Appuyez sur Entrée pour continuer...")
+        return
 
-    # Mettre à jour uniquement les champs non vides
+    # Vérifier si l'événement appartient au support connecté
+    cursor.execute("SELECT * FROM event WHERE id = ? AND support_id = ?", (event_id, utilisateur['id']))
+    autorise = cursor.fetchone()
+    if not autorise:
+        console.print("[red]Vous n'avez pas la permission de modifier cet événement.[/red]")
+        conn.close()
+        console.input("Appuyez sur Entrée pour continuer...")
+        return
+
+    start_date = Prompt.ask("Nouvelle date de début (laisser vide pour ne pas modifier)", default="")
+    end_date = Prompt.ask("Nouvelle date de fin (laisser vide pour ne pas modifier)", default="")
+    location = Prompt.ask("Nouveau lieu (laisser vide pour ne pas modifier)", default="")
+
     if start_date:
         cursor.execute("UPDATE event SET start_date = ? WHERE id = ?", (start_date, event_id))
     if end_date:
@@ -63,19 +93,38 @@ def mettre_a_jour_evenement():
         cursor.execute("UPDATE event SET location = ? WHERE id = ?", (location, event_id))
 
     conn.commit()
-    print("Événement mis à jour avec succès !")
     conn.close()
 
-# Fonction pour afficher tous les événements
+    console.print("[bold green]Événement mis à jour avec succès ![/bold green]")
+    console.input("Appuyez sur Entrée pour continuer...")
+
 def afficher_evenements():
+    console.print("[bold green]=== Liste de tous les événements ===[/bold green]")
+
     conn = connect_db()
     cursor = conn.cursor()
-
-    print("=== Liste de tous les événements ===")
-    cursor.execute("SELECT * FROM event")
+    cursor.execute("SELECT id, contract_id, support_id, start_date, end_date, location FROM event")
     events = cursor.fetchall()
-
-    for event in events:
-        print(f"ID: {event[0]}, Contract ID: {event[1]}, Start: {event[3]}, Location: {event[5]}")
-
     conn.close()
+
+    if not events:
+        console.print("[yellow]Aucun événement enregistré.[/yellow]")
+    else:
+        table = Table(title="Tous les événements", header_style="bold magenta")
+        table.add_column("ID", style="dim", width=6)
+        table.add_column("Contrat ID")
+        table.add_column("Support ID")
+        table.add_column("Début")
+        table.add_column("Fin")
+        table.add_column("Lieu")
+
+        for e in events:
+            table.add_row(str(e[0]), str(e[1]), str(e[2]), e[3], e[4], e[5])
+        console.print(table)
+
+    console.input("Appuyez sur Entrée pour continuer...")
+
+# Exemple d’appel pour test
+if __name__ == "__main__":
+    utilisateur_support = {"id": 2, "name": "Support_User"}
+    afficher_menu_support(utilisateur_support)
