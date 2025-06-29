@@ -4,7 +4,7 @@ import networkx as nx
 # Initialisation du graphe orienté
 G = nx.DiGraph()
 
-# Dictionnaire des tables avec leurs champs et relations
+# Tables et colonnes
 tables = {
     "user": [
         "id (PK)", "name", "email", "password", "role [gestion|commercial|support]"
@@ -23,39 +23,37 @@ tables = {
     ]
 }
 
-# Ajout des nœuds
+# Ajout des nœuds avec labels
 for table, fields in tables.items():
     label = f"{table}\n" + "\n".join(fields)
     G.add_node(table, label=label)
 
-# Définition des relations (arêtes)
+# Relations entre les tables
 relations = [
-    ("client", "user"),           # client.commercial_id → user.id
-    ("contract", "client"),       # contract.client_id → client.id
-    ("contract", "user"),         # contract.commercial_id → user.id
-    ("event", "contract"),        # event.contract_id → contract.id
-    ("event", "user")             # event.support_id → user.id
+    ("client", "user"),
+    ("contract", "client"),
+    ("contract", "user"),
+    ("event", "contract"),
+    ("event", "user")
 ]
-
-# Ajout des arêtes au graphe
 G.add_edges_from(relations)
 
-# Positionnement automatique des nœuds
-pos = nx.spring_layout(G, seed=42)
+# Utilise une disposition circulaire compacte
+pos = nx.shell_layout(G)
 
-# Dessin du graphe
-plt.figure(figsize=(13, 9))
-nx.draw_networkx_edges(G, pos, edge_color='gray', arrowstyle='-|>', arrowsize=20)
-nx.draw_networkx_nodes(G, pos, node_color='lightblue', node_size=4500)
-nx.draw_networkx_labels(G, pos, labels={t: t for t in tables}, font_weight='bold', font_size=11)
+# Dessiner les arêtes et les nœuds
+plt.figure(figsize=(10, 7))
+nx.draw_networkx_edges(G, pos, edge_color='gray', arrowstyle='-|>', arrowsize=18)
+nx.draw_networkx_nodes(G, pos, node_color='lightblue', node_size=3000)
+nx.draw_networkx_labels(G, pos, labels={t: t for t in tables}, font_size=9, font_weight='bold')
 
-# Ajout des détails des tables sous forme de boîtes de texte
+# Ajouter les détails des tables
 for table, (x, y) in pos.items():
     label = G.nodes[table]["label"]
-    plt.text(x, y - 0.08, label, fontsize=9, ha='center', va='top',
-             bbox=dict(facecolor='white', edgecolor='black', boxstyle='round,pad=0.5', alpha=0.85))
+    plt.text(x, y - 0.08, label, fontsize=8, ha='center', va='top',
+             bbox=dict(facecolor='white', edgecolor='black', boxstyle='round,pad=0.3', alpha=0.9))
 
-plt.title("Modèle relationnel EPIC CRM", fontsize=15, fontweight='bold')
+plt.title("Modèle relationnel EPIC CRM (compact)", fontsize=13, fontweight='bold')
 plt.axis('off')
 plt.tight_layout()
 plt.show()
