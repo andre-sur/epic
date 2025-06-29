@@ -6,7 +6,7 @@ from rich.prompt import Prompt
 console = Console()
 
 def connect_db():
-    return sqlite3.connect('epic_events.db')
+    return sqlite3.connect('epic_crm.db')
 
 def afficher_menu_support(utilisateur):
     while True:
