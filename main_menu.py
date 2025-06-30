@@ -2,6 +2,7 @@ import os
 import menu_commercial, menu_commercial_rich
 import menu_gestion, menu_gestion_rich
 import menu_support
+import time
 
 # Fonction pour afficher le menu principal
 def afficher_menu_principal():
