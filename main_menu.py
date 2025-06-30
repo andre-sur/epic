@@ -32,7 +32,12 @@ def main():
     while not utilisateur:
         utilisateur = connecter_utilisateur()
 
+    if utilisateur.get('token'):
+        print(f"🔐 Votre token est : {utilisateur['token']}")
+        print("💡 Conservez-le précieusement. Il va s'effacer dans 60 secondes.")
+
     # Nettoie l'écran
+    time.sleep(60)
     os.system('cls' if os.name == 'nt' else 'clear')
 
     # Redirection automatique selon le rôle
