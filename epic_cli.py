@@ -16,6 +16,28 @@ def cli(ctx):
     ctx.obj = {'user_id': utilisateur['id']}
 
 @cli.command()
+def generer_token():
+    """Génère un token pour un utilisateur après authentification."""
+    from auth import connecter_utilisateur
+    utilisateur = connecter_utilisateur()
+
+    if not utilisateur:
+        click.echo("⛔️ Échec de l'authentification.")
+        return
+
+    token = str(uuid.uuid4())  # génère un token unique
+    conn = connect_db()
+    cursor = conn.cursor()
+
+    cursor.execute("UPDATE user SET token = ? WHERE id = ?", (token, utilisateur['id']))
+    conn.commit()
+    conn.close()
+
+    click.echo("✅ Token généré avec succès !")
+    click.echo(f"Voici votre token (gardez-le secret) :\n\n🔐 {token}\n")
+
+
+@cli.command()
 @click.pass_context
 def creer_client(ctx):
     """Créer un client."""
