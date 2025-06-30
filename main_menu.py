@@ -1,57 +1,73 @@
 import os
-import menu_commercial, menu_commercial_rich
-import menu_gestion, menu_gestion_rich
-import menu_support
 import time
-
-# Fonction pour afficher le menu principal
-def afficher_menu_principal():
-    os.system('cls' if os.name == 'nt' else 'clear')  # Efface l'écran pour un affichage propre
-    print("========================================")
-    print("           MENU PRINCIPAL")
-    print("========================================")
-    print("1. Département Commercial")
-    print("2. Département Gestion")
-    print("3. Département Support")
-    print("4. Quitter")
-    print("========================================")
-    
-    choix = input("Veuillez sélectionner une option (1-4) : ")
-    return choix
-
-# Fonction principale pour naviguer dans le menu
-import os
-import menu_commercial
-import menu_gestion
-import menu_support
-from auth import connecter_utilisateur
+from auth import connecter_utilisateur, deconnecter_utilisateur
+import menu_commercial_rich
+import menu_gestion_rich
+import menu_support_rich
 
 def main():
     utilisateur = None
 
-    # Boucle de connexion
-    while not utilisateur:
+    while True:
+        # Connexion utilisateur
         utilisateur = connecter_utilisateur()
+        if not utilisateur:
+            print("⛔️ Échec de la connexion, réessayez.")
+            continue
 
-    if utilisateur.get('token'):
-        print(f"🔐 Votre token est : {utilisateur['token']}")
-        print("💡 Conservez-le précieusement. Il va s'effacer dans 60 secondes.")
+        # Affiche le token temporairement si présent
+        if utilisateur.get('token'):
+            print(f"🔐 Votre token est : {utilisateur['token']}")
+            print("💡 Conservez-le précieusement. Il va s'effacer dans 60 secondes.")
+            time.sleep(60)
+            os.system('cls' if os.name == 'nt' else 'clear')
 
-    # Nettoie l'écran
-    time.sleep(60)
-    os.system('cls' if os.name == 'nt' else 'clear')
+        # Menu après connexion
+        while True:
+            print("\n=== Menu utilisateur ===")
+            print("1. Choisir interface")
+            print("2. Déconnexion")
+            choix = input("Votre choix (1-2) : ").strip()
 
-    # Redirection automatique selon le rôle
-    role = utilisateur['role']
+            if choix == '1':
+                role = utilisateur['role']
 
-    if role == 'commercial':
-        menu_commercial_rich.afficher_menu_commercial(utilisateur)
-    elif role == 'gestion':
-        menu_gestion_rich.afficher_menu_gestion(utilisateur)
-    elif role == 'support':
-        menu_support.afficher_menu_support(utilisateur)
-    else:
-        print("⛔️ Rôle inconnu. Accès refusé.")
+                print("Choisissez votre interface :")
+                print("1. Menu avancé Rich")
+                print("2. CLI en ligne de commande")
+                choix_interface = input("Votre choix (1-2) : ").strip()
+
+                if role == 'commercial':
+                    if choix_interface == '1':
+                        menu_commercial_rich.afficher_menu_commercial(utilisateur)
+                    elif choix_interface == '2':
+                        os.system('python cli_commercial.py')
+                    else:
+                        print("Choix invalide.")
+                elif role == 'gestion':
+                    if choix_interface == '1':
+                        menu_gestion_rich.afficher_menu_gestion(utilisateur)
+                    elif choix_interface == '2':
+                        os.system('python cli_gestion.py')
+                    else:
+                        print("Choix invalide.")
+                elif role == 'support':
+                    if choix_interface == '1':
+                        menu_support_rich.afficher_menu_support(utilisateur)
+                    elif choix_interface == '2':
+                        os.system('python cli_support.py')
+                    else:
+                        print("Choix invalide.")
+                else:
+                    print("⛔️ Rôle inconnu. Accès refusé.")
+            elif choix == '2':
+                # Déconnexion : suppression du token (si implémenté)
+                deconnecter_utilisateur(utilisateur['id'])
+                print("✅ Déconnecté.")
+                os.system('cls' if os.name == 'nt' else 'clear')
+                break  # Retour à la boucle de connexion
+            else:
+                print("Choix invalide.")
 
 if __name__ == "__main__":
     main()

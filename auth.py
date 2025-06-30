@@ -7,6 +7,7 @@ import time
 import pyperclip 
 
 DB_PATH = 'epic_crm.db'
+_current_user = None  # Variable globale pour stocker l'utilisateur connecté
 
 def generer_token_pour_utilisateur(user_id):
     token = secrets.token_hex(16)  # Token aléatoire de 32 caractères
@@ -18,6 +19,11 @@ def generer_token_pour_utilisateur(user_id):
     return token
 
 def connecter_utilisateur():
+    global _current_user
+    if _current_user:
+        print(f"🔐 Utilisateur déjà connecté : {_current_user['name']} ({_current_user['role']})")
+        return _current_user
+
     print("=== Authentification ===")
     print("1. Par email et mot de passe")
     print("2. Par token (EPIC_TOKEN ou saisie manuelle)")
@@ -43,7 +49,6 @@ def connecter_utilisateur():
                 token_genere = generer_token_pour_utilisateur(user_id)
                 print("✅ Token généré avec succès.")
 
-                # Options de gestion du token
                 print("\nComment souhaitez-vous gérer votre token ?")
                 print("1. Sauvegarder dans un fichier texte")
                 print("2. Copier dans le presse-papiers")
@@ -69,7 +74,8 @@ def connecter_utilisateur():
                 else:
                     print("Aucune action effectuée.")
 
-                return {'id': user_id, 'name': name, 'email': email, 'role': role}
+                _current_user = {'id': user_id, 'name': name, 'email': email, 'role': role, 'token': token_genere}
+                return _current_user
             else:
                 print("Authentification par token annulée.")
                 return None
@@ -80,7 +86,8 @@ def connecter_utilisateur():
 
             if token == token_en_base:
                 print(f"🔐 Connecté avec token – {email}")
-                return {'id': user_id, 'name': name, 'email': email, 'role': role}
+                _current_user = {'id': user_id, 'name': name, 'email': email, 'role': role, 'token': token}
+                return _current_user
             else:
                 print("❌ Token invalide.")
                 return None
@@ -95,7 +102,8 @@ def connecter_utilisateur():
             user_id, name, email, hashed_password, role = row
             if bcrypt.checkpw(password, hashed_password.encode('utf-8')):
                 print(f"✅ Connecté avec succès – {name} ({role})")
-                return {'id': user_id, 'name': name, 'email': email, 'role': role}
+                _current_user = {'id': user_id, 'name': name, 'email': email, 'role': role, 'token': None}
+                return _current_user
             else:
                 print("❌ Mot de passe incorrect.")
         else:
@@ -105,3 +113,20 @@ def connecter_utilisateur():
     else:
         print("❌ Choix invalide.")
         return None
+
+def deconnecter_utilisateur():
+    global _current_user
+    if not _current_user:
+        print("ℹ️ Aucun utilisateur connecté.")
+        return
+
+    # Supprimer le token en base si existant
+    if 'token' in _current_user and _current_user['token']:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute("UPDATE user SET token = NULL WHERE id = ?", (_current_user['id'],))
+        conn.commit()
+        conn.close()
+
+    print(f"🔓 Déconnexion de {_current_user['name']}.")
+    _current_user = None
