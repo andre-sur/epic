@@ -25,7 +25,8 @@ def afficher_menu_gestion(utilisateur):
         table.add_row("4", "Afficher tous les collaborateurs")
         table.add_row("5", "Créer un contrat")
         table.add_row("6", "Modifier un contrat")
-        table.add_row("6", "Retour au menu principal")
+        table.add_row("7", "Afficher événement non supporté")
+        table.add_row("8", "Ajouter un support à un événement")
         console.print(table)
 
         choix = input("Veuillez entrer votre choix: ")
@@ -40,10 +41,10 @@ def afficher_menu_gestion(utilisateur):
             creer_contrat()
         elif choix == "6":
             modifier_contrat()
-        elif choix == "5":
+        elif choix == "8":
             filtrer_evenements()
-        elif choix == "6":
-            break
+        elif choix == "7":
+            afficher_events_sans_user()
         else:
             print("[red]Choix invalide. Veuillez réessayer.[/red]")
 
@@ -380,6 +381,27 @@ def creer_evenement():
 
     conn.commit()
     print("[green]Événement ajouté avec succès ![/green]")
+    conn.close()
+
+def afficher_events_sans_user():
+    conn = sqlite3.connect("epic_crm.db")
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT id, contract_id, start_date, end_date, location, attendees, notes
+        FROM event
+        WHERE support_id IS NULL
+    """)
+
+    events = cursor.fetchall()
+
+    if not events:
+        print("Aucun événement sans utilisateur associé.")
+    else:
+        print("\nÉvénements sans utilisateur associé :\n")
+        for ev in events:
+            print(f"ID: {ev[0]}, Contrat: {ev[1]}, Du {ev[2]} au {ev[3]}, Lieu: {ev[4]}, Participants: {ev[5]}, Notes: {ev[6]}")
+
     conn.close()
 
 def filtrer_evenements():
