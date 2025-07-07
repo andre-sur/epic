@@ -209,7 +209,7 @@ if __name__ == "__main__":
     utilisateur_exemple = {"id": 1, "name": "André"}
     afficher_menu_commercial(utilisateur_exemple)
 
-def display_contracts_overdue():
+def display_contracts_overdue(utilisateur):
     conn = connect_db()
     cursor = conn.cursor()
 
@@ -237,7 +237,7 @@ Signé: {'Oui' if contrat[5] else 'Non'}
 """)
     conn.close()
 
-def display_contracts_not_signed():
+def display_contracts_not_signed(utilisateur):
     conn = connect_db()
     cursor = conn.cursor()
 
