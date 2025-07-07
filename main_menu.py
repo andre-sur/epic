@@ -25,7 +25,7 @@ def main():
         # Menu après connexion
         while True:
             print("\n=== Menu utilisateur ===")
-            print("1. Choisir interface")
+            print("1. Choisir interface (menus ou Command-Line-Interface)")
             print("2. Déconnexion")
             choix = input("Votre choix (1-2) : ").strip()
 
@@ -37,32 +37,35 @@ def main():
                 print("2. CLI en ligne de commande")
                 choix_interface = input("Votre choix (1-2) : ").strip()
 
-                if role == 'commercial':
-                    if choix_interface == '1':
-                        menu_commercial_rich.afficher_menu_commercial(utilisateur)
-                    elif choix_interface == '2':
+                if choix_interface == '2':
+                    print("\n🚀 Vous avez quitté le menu principal. La CLI va maintenant démarrer.")
+                    print("🖥️ Une fois la CLI terminée, vous reviendrez ici dans le terminal.")
+                    if role == 'commercial':
                         os.system('python cli_commercial.py')
-                    else:
-                        print("Choix invalide.")
-                elif role == 'gestion':
-                    if choix_interface == '1':
-                        menu_gestion_rich.afficher_menu_gestion(utilisateur)
-                    elif choix_interface == '2':
+                    elif role == 'gestion':
                         os.system('python cli_gestion.py')
-                    else:
-                        print("Choix invalide.")
-                elif role == 'support':
-                    if choix_interface == '1':
-                        menu_support_rich.afficher_menu_support(utilisateur)
-                    elif choix_interface == '2':
+                    elif role == 'support':
                         os.system('python cli_support.py')
                     else:
-                        print("Choix invalide.")
+                        print("⛔️ Rôle inconnu. Accès refusé.")
+                    print("\n🔙 Vous êtes de retour dans le terminal principal.")
+                    break  # Sortie de la boucle menu utilisateur, retour au terminal principal
+
+                elif choix_interface == '1':
+                    if role == 'commercial':
+                        menu_commercial_rich.afficher_menu_commercial(utilisateur)
+                    elif role == 'gestion':
+                        menu_gestion_rich.afficher_menu_gestion(utilisateur)
+                    elif role == 'support':
+                        menu_support_rich.afficher_menu_support(utilisateur)
+                    else:
+                        print("⛔️ Rôle inconnu. Accès refusé.")
                 else:
-                    print("⛔️ Rôle inconnu. Accès refusé.")
+                    print("Choix invalide.")
+
             elif choix == '2':
                 # Déconnexion : suppression du token (si implémenté)
-                deconnecter_utilisateur(utilisateur['id'])
+                deconnecter_utilisateur()
                 print("✅ Déconnecté.")
                 os.system('cls' if os.name == 'nt' else 'clear')
                 break  # Retour à la boucle de connexion
