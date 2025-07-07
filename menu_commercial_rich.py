@@ -22,7 +22,7 @@ def afficher_menu_commercial(utilisateur):
         table.add_row("6.", "Afficher les contrats impayés")
         table.add_row("7.", "Afficher les contrats non signés")
         table.add_row("8.", "Mise à jour d'un contrat")
-        table.add_row("9.", "Retour au menu principal")
+        table.add_row("9.", "Créer un événement")
         console.print(table)
 
         choix = Prompt.ask("Veuillez entrer votre choix", choices=[str(i) for i in range(1,10)])
@@ -43,6 +43,8 @@ def afficher_menu_commercial(utilisateur):
             display_contracts_not_signed(utilisateur)
         elif choix == '8':
             update_contract(utilisateur)
+        elif choix == '9':
+            create_event(utilisateur)
 
 def creer_client(utilisateur):
     console.print("[bold green]=== Création d'un client ===[/bold green]")
@@ -358,6 +360,87 @@ def update_contract(utilisateur):
         print("✅ Contrat modifié avec succès.")
     except Exception as e:
         print(f"❌ Erreur lors de la modification : {e}")
+
+    conn.close()
+
+def create_event(utilisateur):
+    conn = connect_db()
+    cursor = conn.cursor()
+
+    print("=== Création d'un nouvel événement ===")
+
+    # Demander l'ID du contrat
+    contrat_id = input("Numéro du contrat associé : ").strip()
+
+    # Vérifier que le contrat existe et appartient bien au commercial connecté
+    cursor.execute("""
+        SELECT id FROM contract WHERE id = ? AND commercial_id = ?
+    """, (contrat_id, utilisateur['id']))
+    contrat = cursor.fetchone()
+
+    if not contrat:
+        print("❌ Contrat introuvable ou non lié à vous.")
+        conn.close()
+        return
+
+    # support_id : optionnel
+    support_id = input("ID du support technique (laisser vide si aucun) : ").strip()
+    if support_id == '':
+        support_id = None
+    else:
+        # Vérifier si le support existe
+        cursor.execute("SELECT id FROM user WHERE id = ?", (support_id,))
+        if not cursor.fetchone():
+            print("❌ Support introuvable, champ ignoré.")
+            support_id = None
+
+    # start_date
+    while True:
+        start_date = input("Date de début (AAAA-MM-JJ) : ").strip()
+        try:
+            import datetime
+            datetime.datetime.strptime(start_date, "%Y-%m-%d")
+            break
+        except ValueError:
+            print("❌ Format invalide. Utilisez AAAA-MM-JJ.")
+
+    # end_date
+    while True:
+        end_date = input("Date de fin (AAAA-MM-JJ) : ").strip()
+        try:
+            datetime.datetime.strptime(end_date, "%Y-%m-%d")
+            break
+        except ValueError:
+            print("❌ Format invalide. Utilisez AAAA-MM-JJ.")
+
+    # location
+    location = input("Lieu de l'événement : ").strip()
+
+    # attendees (nombre de participants)
+    while True:
+        attendees_input = input("Nombre de participants : ").strip()
+        if attendees_input == '':
+            attendees = None
+            break
+        try:
+            attendees = int(attendees_input)
+            break
+        except ValueError:
+            print("❌ Veuillez entrer un nombre.")
+
+    # notes
+    notes = input("Notes (description, détails...) : ").strip()
+
+    # Insertion
+    try:
+        cursor.execute("""
+            INSERT INTO event (contract_id, support_id, start_date, end_date, location, attendees, notes)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, (contrat_id, support_id, start_date, end_date, location, attendees, notes))
+        conn.commit()
+        print("✅ Événement créé avec succès.")
+    except Exception as e:
+        print(f"❌ Erreur lors de la création : {e}")
 
     conn.close()
 
