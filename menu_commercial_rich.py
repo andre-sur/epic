@@ -19,7 +19,9 @@ def afficher_menu_commercial(utilisateur):
         table.add_row("3.", "Créer un contrat")
         table.add_row("4.", "Afficher vos clients")
         table.add_row("5.", "Afficher vos contrats")
-        table.add_row("6.", "Retour au menu principal")
+        table.add_row("6.", "Afficher les contrats impayés")
+        table.add_row("7.", "Afficher les contrats non signés")
+        table.add_row("8.", "Retour au menu principal")
         console.print(table)
 
         choix = Prompt.ask("Veuillez entrer votre choix", choices=[str(i) for i in range(1,7)])
@@ -35,6 +37,10 @@ def afficher_menu_commercial(utilisateur):
         elif choix == '5':
             afficher_contrats(utilisateur)
         elif choix == '6':
+            display_contracts_overdue(utilisateur)
+        elif choix == '7':
+            display_contracts_not_signed(utilisateur)
+        elif choix == '8':
             break
 
 def creer_client(utilisateur):
@@ -61,43 +67,57 @@ def creer_client(utilisateur):
     console.input("Appuyez sur Entrée pour continuer...")
 
 def modifier_client(utilisateur):
-    console.print("[bold green]=== Modification d'un client ===[/bold green]")
-    client_id = Prompt.ask("ID du client à modifier")
-
     conn = connect_db()
     cursor = conn.cursor()
 
-    # Vérifier si client existe
+    print("=== Modification d'un client ===")
+    client_id = input("ID du client à modifier: ").strip()
+
+    # Vérifie si le client existe
     cursor.execute("SELECT * FROM client WHERE id = ?", (client_id,))
     client_existe = cursor.fetchone()
+
     if not client_existe:
-        console.print("[red]Ce client n'existe pas.[/red]")
+        print("❌ Ce client n'existe pas.")
         conn.close()
-        console.input("Appuyez sur Entrée pour continuer...")
         return
 
-    # Vérifier que le client appartient au commercial
+    # Vérifie que le client appartient à ce commercial
     cursor.execute("SELECT * FROM client WHERE id = ? AND commercial_id = ?", (client_id, utilisateur['id']))
     client = cursor.fetchone()
+
     if not client:
-        console.print("[red]Vous n'avez pas la permission de modifier ce client.[/red]")
+        print("❌ Vous n'avez pas la permission de modifier ce client.")
         conn.close()
-        console.input("Appuyez sur Entrée pour continuer...")
         return
 
-    full_name = Prompt.ask("Nouveau nom complet (laisser vide pour ne pas modifier)", default="")
-    email = Prompt.ask("Nouvel email (laisser vide pour ne pas modifier)", default="")
+    # Récupération des champs existants
+    colonnes = [desc[0] for desc in cursor.description]
+    client_data = dict(zip(colonnes, client))
 
-    if full_name:
-        cursor.execute("UPDATE client SET full_name = ? WHERE id = ?", (full_name, client_id))
-    if email:
-        cursor.execute("UPDATE client SET email = ? WHERE id = ?", (email, client_id))
+    print("\n=== Laisser vide pour ne pas modifier ===")
 
-    conn.commit()
+    # Pour chaque champ, afficher valeur actuelle et proposer nouvelle
+    champs_modifiables = ['full_name', 'email', 'phone', 'company_name', 'created_date', 'last_contact_date']
+    nouvelles_valeurs = {}
+
+    for champ in champs_modifiables:
+        valeur_actuelle = client_data[champ] if client_data[champ] is not None else ''
+        nouvelle_valeur = input(f"{champ.replace('_', ' ').capitalize()} [{valeur_actuelle}]: ").strip()
+        if nouvelle_valeur != '':
+            nouvelles_valeurs[champ] = nouvelle_valeur
+
+    # Appliquer les mises à jour
+    if nouvelles_valeurs:
+        set_clause = ", ".join([f"{champ} = ?" for champ in nouvelles_valeurs])
+        valeurs = list(nouvelles_valeurs.values()) + [client_id]
+        cursor.execute(f"UPDATE client SET {set_clause} WHERE id = ?", valeurs)
+        conn.commit()
+        print("✅ Client modifié avec succès !")
+    else:
+        print("Aucune modification effectuée.")
+
     conn.close()
-
-    console.print("[bold green]Client modifié avec succès ![/bold green]")
-    console.input("Appuyez sur Entrée pour continuer...")
 
 def creer_contrat(utilisateur):
     console.print("[bold green]=== Création d'un contrat ===[/bold green]")
@@ -188,3 +208,60 @@ def afficher_contrats(utilisateur):
 if __name__ == "__main__":
     utilisateur_exemple = {"id": 1, "name": "André"}
     afficher_menu_commercial(utilisateur_exemple)
+
+def display_contracts_overdue():
+    conn = connect_db()
+    cursor = conn.cursor()
+
+    print("=== Contrats avec montant restant à payer > 0 ===")
+    cursor.execute("""
+        SELECT c.id, c.client_id, c.total_amount, c.amount_due, c.created_date, c.is_signed, cl.full_name
+        FROM contract c
+        JOIN client cl ON c.client_id = cl.id
+        WHERE c.amount_due > 0
+        ORDER BY c.created_date DESC
+    """)
+    contrats = cursor.fetchall()
+
+    if not contrats:
+        print("✅ Tous les contrats sont soldés !")
+    else:
+        for contrat in contrats:
+            print(f"""
+Contrat ID: {contrat[0]}
+Client ID: {contrat[1]} ({contrat[6]})
+Montant total: {contrat[2]}
+Montant restant à payer: {contrat[3]}
+Date de création: {contrat[4]}
+Signé: {'Oui' if contrat[5] else 'Non'}
+""")
+    conn.close()
+
+def display_contracts_not_signed():
+    conn = connect_db()
+    cursor = conn.cursor()
+
+    print("=== Contrats non signés ===")
+    cursor.execute("""
+        SELECT c.id, c.client_id, c.total_amount, c.amount_due, c.created_date, cl.full_name
+        FROM contract c
+        JOIN client cl ON c.client_id = cl.id
+        WHERE c.is_signed = 0
+        ORDER BY c.created_date DESC
+    """)
+    contrats = cursor.fetchall()
+
+    if not contrats:
+        print("✅ Tous les contrats sont signés !")
+    else:
+        for contrat in contrats:
+            print(f"""
+Contrat ID: {contrat[0]}
+Client ID: {contrat[1]} ({contrat[5]})
+Montant total: {contrat[2]}
+Montant restant à payer: {contrat[3]}
+Date de création: {contrat[4]}
+Signé: Non
+""")
+    conn.close()
+

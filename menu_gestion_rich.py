@@ -43,8 +43,6 @@ def afficher_menu_gestion(utilisateur):
             creer_contrat()
         elif choix == "6":
             modifier_contrat()
-        elif choix == "8":
-            filtrer_evenements()
         elif choix == "7":
             afficher_events_sans_user()
         elif choix == "8":
