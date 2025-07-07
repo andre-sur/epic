@@ -47,3 +47,5 @@ CREATE TABLE event (
     FOREIGN KEY (contract_id) REFERENCES contract(id),
     FOREIGN KEY (support_id) REFERENCES user(id)
 );
+
+

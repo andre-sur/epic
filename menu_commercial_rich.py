@@ -21,10 +21,11 @@ def afficher_menu_commercial(utilisateur):
         table.add_row("5.", "Afficher vos contrats")
         table.add_row("6.", "Afficher les contrats impayés")
         table.add_row("7.", "Afficher les contrats non signés")
-        table.add_row("8.", "Retour au menu principal")
+        table.add_row("8.", "Mise à jour d'un contrat")
+        table.add_row("9.", "Retour au menu principal")
         console.print(table)
 
-        choix = Prompt.ask("Veuillez entrer votre choix", choices=[str(i) for i in range(1,7)])
+        choix = Prompt.ask("Veuillez entrer votre choix", choices=[str(i) for i in range(1,10)])
 
         if choix == '1':
             creer_client(utilisateur)
@@ -41,7 +42,7 @@ def afficher_menu_commercial(utilisateur):
         elif choix == '7':
             display_contracts_not_signed(utilisateur)
         elif choix == '8':
-            break
+            update_contract(utilisateur)
 
 def creer_client(utilisateur):
     console.print("[bold green]=== Création d'un client ===[/bold green]")
@@ -241,18 +242,19 @@ def display_contracts_not_signed(utilisateur):
     conn = connect_db()
     cursor = conn.cursor()
 
-    print("=== Contrats non signés ===")
+    print("=== Contrats non signés liés au commercial ===")
     cursor.execute("""
         SELECT c.id, c.client_id, c.total_amount, c.amount_due, c.created_date, cl.full_name
         FROM contract c
         JOIN client cl ON c.client_id = cl.id
         WHERE c.is_signed = 0
+          AND c.commercial_id = ?
         ORDER BY c.created_date DESC
-    """)
+    """, (utilisateur['id'],))
     contrats = cursor.fetchall()
 
     if not contrats:
-        print("✅ Tous les contrats sont signés !")
+        print("✅ Aucun contrat non signé lié à vous.")
     else:
         for contrat in contrats:
             print(f"""
@@ -264,4 +266,99 @@ Date de création: {contrat[4]}
 Signé: Non
 """)
     conn.close()
+
+def update_contract(utilisateur):
+    conn = connect_db()
+    cursor = conn.cursor()
+
+    print("=== Modification d'un contrat ===")
+    contrat_id = input("Numéro du contrat à modifier : ").strip()
+
+    # Vérifier que le contrat existe et appartient au commercial
+    cursor.execute("""
+        SELECT id, client_id, commercial_id, total_amount, amount_due, created_date, is_signed
+        FROM contract
+        WHERE id = ? AND commercial_id = ?
+    """, (contrat_id, utilisateur['id']))
+    contrat = cursor.fetchone()
+
+    if not contrat:
+        print("❌ Contrat introuvable ou non lié à vous.")
+        conn.close()
+        return
+
+    colonnes = ['id', 'client_id', 'commercial_id', 'total_amount', 'amount_due', 'created_date', 'is_signed']
+    contrat_data = dict(zip(colonnes, contrat))
+
+    print("\n=== Laisser vide pour ne rien modifier ===")
+
+    # Pour client_id, on peut afficher l'id mais généralement pas modifier ici (car FK)
+    # Si tu veux, je peux ajouter la modif client_id aussi, mais souvent on ne change pas ça.
+    # Je propose de ne modifier que : total_amount, amount_due, created_date, is_signed
+
+    # total_amount (float)
+    while True:
+        valeur = input(f"Montant total [{contrat_data['total_amount']}]: ").strip()
+        if valeur == '':
+            total_amount = contrat_data['total_amount']
+            break
+        try:
+            total_amount = float(valeur)
+            break
+        except ValueError:
+            print("❌ Montant invalide, veuillez entrer un nombre.")
+
+    # amount_due (float)
+    while True:
+        valeur = input(f"Montant restant à payer [{contrat_data['amount_due']}]: ").strip()
+        if valeur == '':
+            amount_due = contrat_data['amount_due']
+            break
+        try:
+            amount_due = float(valeur)
+            break
+        except ValueError:
+            print("❌ Montant invalide, veuillez entrer un nombre.")
+
+    # created_date (texte - format AAAA-MM-JJ)
+    while True:
+        valeur = input(f"Date de création [{contrat_data['created_date']}]: ").strip()
+        if valeur == '':
+            created_date = contrat_data['created_date']
+            break
+        # Optionnel : vérifier format date
+        import datetime
+        try:
+            datetime.datetime.strptime(valeur, "%Y-%m-%d")
+            created_date = valeur
+            break
+        except ValueError:
+            print("❌ Format date invalide. Utilisez AAAA-MM-JJ.")
+
+    # is_signed (0 ou 1)
+    while True:
+        valeur = input(f"Contrat signé ? (0 = non, 1 = oui) [{contrat_data['is_signed']}]: ").strip()
+        if valeur == '':
+            is_signed = contrat_data['is_signed']
+            break
+        if valeur in ('0', '1'):
+            is_signed = int(valeur)
+            break
+        else:
+            print("❌ Veuillez entrer 0 ou 1.")
+
+    # Mise à jour
+    try:
+        cursor.execute("""
+            UPDATE contract
+            SET total_amount = ?, amount_due = ?, created_date = ?, is_signed = ?
+            WHERE id = ?
+        """, (total_amount, amount_due, created_date, is_signed, contrat_id))
+        conn.commit()
+        print("✅ Contrat modifié avec succès.")
+    except Exception as e:
+        print(f"❌ Erreur lors de la modification : {e}")
+
+    conn.close()
+
 
