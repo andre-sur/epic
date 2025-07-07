@@ -37,6 +37,8 @@ def afficher_menu_gestion(utilisateur):
             mettre_a_jour_collaborateur()
         elif choix == "3":
             supprimer_collaborateur()
+        elif choix == "4":
+            afficher_collaborateurs()
         elif choix == "5":
             creer_contrat()
         elif choix == "6":
@@ -45,6 +47,8 @@ def afficher_menu_gestion(utilisateur):
             filtrer_evenements()
         elif choix == "7":
             afficher_events_sans_user()
+        elif choix == "8":
+            ajouter_support_evenement()
         else:
             print("[red]Choix invalide. Veuillez réessayer.[/red]")
 
@@ -435,5 +439,67 @@ def filtrer_evenements():
             table.add_row(str(e[0]), str(e[1]), str(e[2]), e[3], e[4], e[5], str(e[6]))
 
         console.print(table)
+
+    conn.close()
+
+import sqlite3
+
+def ajouter_support_evenement():
+    conn = sqlite3.connect("epic_crm.db")
+    cursor = conn.cursor()
+
+    # Lister d'abord les événements sans support pour aider le choix
+    cursor.execute("""
+        SELECT id, contract_id, start_date, end_date, location
+        FROM event
+        WHERE support_id IS NULL
+    """)
+    events = cursor.fetchall()
+
+    if not events:
+        print("✅ Tous les événements ont déjà un support associé.")
+        conn.close()
+        return
+
+    print("\n=== Événements sans support ===")
+    for ev in events:
+        print(f"ID: {ev[0]} | Contrat: {ev[1]} | {ev[2]} → {ev[3]} | Lieu: {ev[4]}")
+
+    # Demander à l'utilisateur de choisir un événement
+    while True:
+        try:
+            event_id = int(input("\nID de l'événement à mettre à jour : ").strip())
+            cursor.execute("SELECT id FROM event WHERE id = ? AND support_id IS NULL", (event_id,))
+            if cursor.fetchone() is None:
+                print("❌ Cet événement n'existe pas ou a déjà un support. Réessayez.")
+            else:
+                break
+        except ValueError:
+            print("❌ Veuillez entrer un nombre entier valide.")
+
+    # Demander l'ID du support
+    while True:
+        try:
+            support_id = int(input("ID de l'utilisateur à associer comme support : ").strip())
+            # Vérifier que cet user existe et a bien le rôle 'support'
+            cursor.execute("SELECT id FROM user WHERE id = ? AND role = 'support'", (support_id,))
+            if cursor.fetchone() is None:
+                print("❌ Utilisateur introuvable ou n'est pas un support. Réessayez.")
+            else:
+                break
+        except ValueError:
+            print("❌ Veuillez entrer un nombre entier valide.")
+
+    # Mettre à jour l'événement
+    try:
+        cursor.execute("""
+            UPDATE event
+            SET support_id = ?
+            WHERE id = ?
+        """, (support_id, event_id))
+        conn.commit()
+        print(f"✅ Support (ID: {support_id}) ajouté à l'événement (ID: {event_id}).")
+    except sqlite3.Error as e:
+        print(f"❌ Erreur lors de la mise à jour : {e}")
 
     conn.close()
