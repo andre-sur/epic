@@ -78,29 +78,38 @@ def update(user_id, client_id):
         console.print("[yellow]Aucune modification effectuée.[/yellow]")
 
     conn.close()
-
 @client.command()
 @click.option('--user-id', required=True, type=int, help='ID du commercial connecté')
 @click.option('--client-id', prompt='ID du client à supprimer', type=int)
 def delete(user_id, client_id):
-    """Supprimer un client (réservé au commercial propriétaire)"""
     conn = connect_db()
     cursor = conn.cursor()
 
-    cursor.execute("SELECT id FROM client WHERE id = ? AND commercial_id = ?", (client_id, user_id))
+    print("=== Suppression d'un client ===")
+
+    # même requête que dans update
+    cursor.execute(
+        "SELECT id, full_name, email FROM client WHERE id = ? AND commercial_id = ?",
+        (client_id, user_id)
+    )
     client = cursor.fetchone()
 
     if not client:
-        console.print("[red]❌ Client introuvable ou non lié à vous.[/red]")
+        print("❌ Ce client n'existe pas ou ne vous appartient pas.")
         conn.close()
         return
 
-    confirmation = click.confirm(f"Êtes-vous sûr de vouloir supprimer le client ID {client_id} ?", default=False)
-    if confirmation:
+    # affichage du nom et email comme dans update
+    print(f"Prénom : {client[1]}")
+    print(f"Email : {client[2]}")
+
+    confirmation = input("⚠️ Êtes-vous sûr de vouloir supprimer ce client ? (o/N): ").strip().lower()
+
+    if confirmation == 'o':
         cursor.execute("DELETE FROM client WHERE id = ?", (client_id,))
         conn.commit()
-        console.print("[green]✅ Client supprimé avec succès.[/green]")
+        print("✅ Client supprimé avec succès.")
     else:
-        console.print("[yellow]Suppression annulée.[/yellow]")
+        print("❌ Suppression annulée.")
 
     conn.close()
