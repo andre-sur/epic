@@ -22,9 +22,9 @@ def clear_token_pour_utilisateur(user_id):
     conn.commit()
     conn.close()
 
-def save_session(user_id, token):
+def save_session(user_id, token, role):
     with open(SESSION_FILE, 'w') as f:
-        json.dump({'user_id': user_id, 'token': token}, f)
+        json.dump({'user_id': user_id, 'token': token, 'role': role}, f)
 
 def clear_session():
     if os.path.exists(SESSION_FILE):

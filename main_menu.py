@@ -17,12 +17,12 @@ def main():
 
         # Génération du token
         token = generer_token_pour_utilisateur(utilisateur['id'])
-        save_session(utilisateur['id'], token)
+        save_session(utilisateur['id'], token, utilisateur['role'])
         utilisateur['token'] = token
 
         print(f"🔐 Votre token est : {utilisateur['token']}")
-        print("💡 Conservez-le précieusement. Il va s'effacer dans 10 secondes.")
-        time.sleep(10)
+        print("💡 Conservez-le précieusement. Il va s'effacer dans 5 secondes.")
+        time.sleep(5)
         os.system('cls' if os.name == 'nt' else 'clear')
 
         while True:

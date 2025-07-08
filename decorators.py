@@ -1,66 +1,19 @@
 import functools
-import click
-from db_utils import connect_db
+from rich.console import Console
+console = Console()
 
-
-def require_commercial(f):
-    @functools.wraps(f)
-    def wrapper(*args, **kwargs):
-        ctx = click.get_current_context()
-        if not ctx.obj or 'user_id' not in ctx.obj:
-            click.echo("❌ Utilisateur non connecté dans le contexte.")
-            ctx.exit(1)
-
-        user_id = ctx.obj['user_id']
-
-        conn = connect_db()
-        cursor = conn.cursor()
-        cursor.execute("SELECT role FROM user WHERE id = ?", (user_id,))
-        row = cursor.fetchone()
-        conn.close()
-
-        if not row:
-            click.echo("❌ Utilisateur introuvable.")
-            ctx.exit(1)
-
-        role = row[0]
-
-        if role != 'commercial':
-            click.echo("❌ Accès refusé : vous devez être un commercial.")
-            ctx.exit(1)
-
-        # Ne pas injecter user_id ni role, juste appeler la fonction
-        return f(*args, **kwargs)
-
-    return wrapper
-
-def require_support(f):
-    @functools.wraps(f)
-    def wrapper(*args, **kwargs):
-        ctx = click.get_current_context()
-        if not ctx.obj or 'user_id' not in ctx.obj:
-            click.echo("❌ Utilisateur non connecté dans le contexte.")
-            ctx.exit(1)
-
-        user_id = ctx.obj['user_id']
-
-        conn = connect_db()
-        cursor = conn.cursor()
-        cursor.execute("SELECT role FROM user WHERE id = ?", (user_id,))
-        row = cursor.fetchone()
-        conn.close()
-
-        if not row:
-            click.echo("❌ Utilisateur introuvable.")
-            ctx.exit(1)
-
-        role = row[0]
-
-        if role != 'support':
-            click.echo("❌ Accès refusé : vous devez être un support.")
-            ctx.exit(1)
-
-        # Ne pas injecter user_id ni role, juste appeler la fonction
-        return f(*args, **kwargs)
-
-    return wrapper
+def require_role(*roles_autorises):
+    def decorator(f):
+        @functools.wraps(f)
+        def wrapper(*args, **kwargs):
+            if not args:
+                console.print("[red]❌ Erreur interne : aucun argument passé au décorateur (ctx manquant).[/red]")
+                return
+            ctx = args[0]
+            role = getattr(ctx, "obj", {}).get('role')
+            if role not in roles_autorises:
+                console.print(f"[red]❌ Accès refusé : rôle '{role}' non autorisé.[/red]")
+                return
+            return f(*args, **kwargs)
+        return wrapper
+    return decorator
