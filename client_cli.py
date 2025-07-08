@@ -49,9 +49,39 @@ def cli(ctx):
         click.echo(ctx.get_help())
 
 @cli.command()
+@click.pass_context
 @require_commercial
-def display(user_id, role):
+def create(ctx):
+    """Créer un nouveau client (réservé au commercial connecté)"""
+    user_id = ctx.obj['user_id']
+    console.print("[bold green]=== Création d'un nouveau client ===[/bold green]")
+
+    full_name = click.prompt("Nom complet")
+    email = click.prompt("Email")
+    phone = click.prompt("Téléphone", default="", show_default=False)
+    company_name = click.prompt("Nom de l'entreprise", default="", show_default=False)
+    created_date = click.prompt("Date de création (YYYY-MM-DD)", default="", show_default=False)
+    last_contact_date = click.prompt("Date dernier contact (YYYY-MM-DD)", default="", show_default=False)
+
+    conn = connect_db()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        INSERT INTO client (full_name, email, phone, company_name, created_date, last_contact_date, commercial_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    """, (full_name, email, phone, company_name, created_date, last_contact_date, user_id))
+
+    conn.commit()
+    conn.close()
+
+    console.print("[green]✅ Client créé avec succès.[/green]")
+
+@cli.command()
+@click.pass_context
+@require_commercial
+def display(ctx):
     """Afficher vos clients"""
+    user_id = ctx.obj['user_id']
     conn = connect_db()
     cursor = conn.cursor()
     cursor.execute("SELECT id, full_name, email, company_name FROM client WHERE commercial_id = ?", (user_id,))
@@ -73,10 +103,12 @@ def display(user_id, role):
         console.print(table)
 
 @cli.command()
-@require_commercial
+@click.pass_context
 @click.option('--client-id', prompt='ID du client à modifier', type=int)
-def update(user_id, role, client_id):
+@require_commercial
+def update(ctx, client_id):
     """Modifier un client (réservé au commercial propriétaire)"""
+    user_id = ctx.obj['user_id']
     conn = connect_db()
     cursor = conn.cursor()
 
@@ -115,10 +147,12 @@ def update(user_id, role, client_id):
     conn.close()
 
 @cli.command()
-@require_commercial
+@click.pass_context
 @click.option('--client-id', prompt='ID du client à supprimer', type=int)
-def delete(user_id, role, client_id):
+@require_commercial
+def delete(ctx, client_id):
     """Supprimer un client (réservé au commercial propriétaire)"""
+    user_id = ctx.obj['user_id']
     conn = connect_db()
     cursor = conn.cursor()
 
