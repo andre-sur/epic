@@ -1,21 +1,56 @@
-import click
+import os
+import sys
+import json
 import sqlite3
+import click
 from rich.console import Console
 from rich.table import Table
+from decorators import require_commercial
 
 console = Console()
+SESSION_FILE = '.session'
 
 def connect_db():
     return sqlite3.connect('epic_crm.db')
 
-@click.group()
-def client():
-    """Commandes pour gérer les clients (réservé aux commerciaux)"""
-    pass
+def get_session():
+    if not os.path.exists(SESSION_FILE):
+        console.print("[red]❌ Pas de session active, veuillez vous connecter via le menu principal.[/red]")
+        sys.exit(1)
+    with open(SESSION_FILE, 'r') as f:
+        return json.load(f)
 
-@client.command()
-@click.option('--user-id', required=True, type=int, help='ID du commercial connecté')
-def display(user_id):
+def verify_token(user_id, token):
+    conn = connect_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT token FROM user WHERE id = ?", (user_id,))
+    row = cursor.fetchone()
+    conn.close()
+
+    if not row or row[0] != token:
+        console.print("[red]❌ Token invalide ou expiré, veuillez vous reconnecter via le menu principal.[/red]")
+        sys.exit(1)
+
+def get_authenticated_user():
+    session = get_session()
+    user_id = session.get('user_id')
+    token = session.get('token')
+    verify_token(user_id, token)
+    return user_id
+
+@click.group(invoke_without_command=True)
+@click.pass_context
+def cli(ctx):
+    """Commandes pour gérer les clients (réservé aux commerciaux)"""
+    user_id = get_authenticated_user()
+    ctx.obj = {'user_id': user_id}
+
+    if ctx.invoked_subcommand is None:
+        click.echo(ctx.get_help())
+
+@cli.command()
+@require_commercial
+def display(user_id, role):
     """Afficher vos clients"""
     conn = connect_db()
     cursor = conn.cursor()
@@ -37,10 +72,10 @@ def display(user_id):
 
         console.print(table)
 
-@client.command()
-@click.option('--user-id', required=True, type=int, help='ID du commercial connecté')
+@cli.command()
+@require_commercial
 @click.option('--client-id', prompt='ID du client à modifier', type=int)
-def update(user_id, client_id):
+def update(user_id, role, client_id):
     """Modifier un client (réservé au commercial propriétaire)"""
     conn = connect_db()
     cursor = conn.cursor()
@@ -78,38 +113,38 @@ def update(user_id, client_id):
         console.print("[yellow]Aucune modification effectuée.[/yellow]")
 
     conn.close()
-@client.command()
-@click.option('--user-id', required=True, type=int, help='ID du commercial connecté')
+
+@cli.command()
+@require_commercial
 @click.option('--client-id', prompt='ID du client à supprimer', type=int)
-def delete(user_id, client_id):
+def delete(user_id, role, client_id):
+    """Supprimer un client (réservé au commercial propriétaire)"""
     conn = connect_db()
     cursor = conn.cursor()
 
-    print("=== Suppression d'un client ===")
+    console.print("=== Suppression d'un client ===")
 
-    # même requête que dans update
-    cursor.execute(
-        "SELECT id, full_name, email FROM client WHERE id = ? AND commercial_id = ?",
-        (client_id, user_id)
-    )
+    cursor.execute("SELECT id, full_name, email FROM client WHERE id = ? AND commercial_id = ?", (client_id, user_id))
     client = cursor.fetchone()
 
     if not client:
-        print("❌ Ce client n'existe pas ou ne vous appartient pas.")
+        console.print("[red]❌ Ce client n'existe pas ou ne vous appartient pas.[/red]")
         conn.close()
         return
 
-    # affichage du nom et email comme dans update
-    print(f"Prénom : {client[1]}")
-    print(f"Email : {client[2]}")
+    console.print(f"Nom : {client[1]}")
+    console.print(f"Email : {client[2]}")
 
     confirmation = input("⚠️ Êtes-vous sûr de vouloir supprimer ce client ? (o/N): ").strip().lower()
 
     if confirmation == 'o':
         cursor.execute("DELETE FROM client WHERE id = ?", (client_id,))
         conn.commit()
-        print("✅ Client supprimé avec succès.")
+        console.print("[green]✅ Client supprimé avec succès.[/green]")
     else:
-        print("❌ Suppression annulée.")
+        console.print("[yellow]❌ Suppression annulée.[/yellow]")
 
     conn.close()
+
+if __name__ == "__main__":
+    cli()
