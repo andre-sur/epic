@@ -23,15 +23,15 @@ def afficher_menu_support(utilisateur):
         choix = Prompt.ask("Veuillez entrer votre choix", choices=["1", "2", "3", "4"])
 
         if choix == "1":
-            voir_evenements_attribues(utilisateur)
+            display_my_event(utilisateur)
         elif choix == "2":
-            mettre_a_jour_evenement(utilisateur)
+            update_event(utilisateur)
         elif choix == "3":
-            afficher_evenements()
+            display_event()
         elif choix == "4":
             break
 
-def voir_evenements_attribues(utilisateur):
+def display_my_event(utilisateur):
     console.print(f"[bold green]=== Vos événements (Support ID: {utilisateur['id']}) ===[/bold green]")
 
     conn = connect_db()
@@ -56,11 +56,15 @@ def voir_evenements_attribues(utilisateur):
 
     console.input("Appuyez sur Entrée pour continuer...")
 
-def mettre_a_jour_evenement(utilisateur):
+import sqlite3
+from rich.prompt import Prompt
+
+def update_event(utilisateur):
     console.print("[bold green]=== Mise à jour d'un événement ===[/bold green]")
     event_id = Prompt.ask("ID de l'événement à mettre à jour")
 
     conn = connect_db()
+    conn.row_factory = sqlite3.Row   # ✅ permet de récupérer les colonnes par nom
     cursor = conn.cursor()
 
     # Vérifier si l'événement existe
@@ -72,7 +76,7 @@ def mettre_a_jour_evenement(utilisateur):
         console.input("Appuyez sur Entrée pour continuer...")
         return
 
-    # Vérifier si l'événement appartient au support connecté
+    # Vérifier si l'événement appartient bien au support connecté
     cursor.execute("SELECT * FROM event WHERE id = ? AND support_id = ?", (event_id, utilisateur['id']))
     autorise = cursor.fetchone()
     if not autorise:
@@ -81,24 +85,57 @@ def mettre_a_jour_evenement(utilisateur):
         console.input("Appuyez sur Entrée pour continuer...")
         return
 
-    start_date = Prompt.ask("Nouvelle date de début (laisser vide pour ne pas modifier)", default="")
-    end_date = Prompt.ask("Nouvelle date de fin (laisser vide pour ne pas modifier)", default="")
-    location = Prompt.ask("Nouveau lieu (laisser vide pour ne pas modifier)", default="")
+    # Récupérer les valeurs actuelles
+    current_start_date = autorise['start_date'] or ""
+    current_end_date = autorise['end_date'] or ""
+    current_location = autorise['location'] or ""
+    current_attendees = str(autorise['attendees']) if autorise['attendees'] is not None else ""
+    current_notes = autorise['notes'] or ""
 
-    if start_date:
-        cursor.execute("UPDATE event SET start_date = ? WHERE id = ?", (start_date, event_id))
-    if end_date:
-        cursor.execute("UPDATE event SET end_date = ? WHERE id = ?", (end_date, event_id))
-    if location:
-        cursor.execute("UPDATE event SET location = ? WHERE id = ?", (location, event_id))
+    # Proposer les modifications
+    start_date = Prompt.ask(f"Date de début [{current_start_date}]", default="")
+    end_date = Prompt.ask(f"Date de fin [{current_end_date}]", default="")
+    location = Prompt.ask(f"Lieu [{current_location}]", default="")
+    attendees_input = Prompt.ask(f"Nombre de participants [{current_attendees}]", default="")
+    notes = Prompt.ask(f"Notes [{current_notes}]", default="")
 
-    conn.commit()
+    # Construire dynamiquement la requête UPDATE
+    updates = []
+    params = []
+
+    if start_date.strip():
+        updates.append("start_date = ?")
+        params.append(start_date.strip())
+    if end_date.strip():
+        updates.append("end_date = ?")
+        params.append(end_date.strip())
+    if location.strip():
+        updates.append("location = ?")
+        params.append(location.strip())
+    if attendees_input.strip():
+        try:
+            attendees = int(attendees_input.strip())
+            updates.append("attendees = ?")
+            params.append(attendees)
+        except ValueError:
+            console.print("[red]Nombre de participants invalide, modification ignorée.[/red]")
+    if notes.strip():
+        updates.append("notes = ?")
+        params.append(notes.strip())
+
+    if updates:
+        sql = f"UPDATE event SET {', '.join(updates)} WHERE id = ?"
+        params.append(event_id)
+        cursor.execute(sql, params)
+        conn.commit()
+        console.print("[bold green]Événement mis à jour avec succès ![/bold green]")
+    else:
+        console.print("[yellow]Aucune modification apportée.[/yellow]")
+
     conn.close()
-
-    console.print("[bold green]Événement mis à jour avec succès ![/bold green]")
     console.input("Appuyez sur Entrée pour continuer...")
 
-def afficher_evenements():
+def display_event():
     console.print("[bold green]=== Liste de tous les événements ===[/bold green]")
 
     conn = connect_db()
