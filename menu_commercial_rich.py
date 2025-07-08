@@ -28,13 +28,13 @@ def afficher_menu_commercial(utilisateur):
         choix = Prompt.ask("Veuillez entrer votre choix", choices=[str(i) for i in range(1,10)])
 
         if choix == '1':
-            creer_client(utilisateur)
+            add_client(utilisateur)
         elif choix == '2':
-            modifier_client(utilisateur)
+            update_client(utilisateur)
         elif choix == '3':
-            creer_contrat(utilisateur)
+            add_contract(utilisateur)
         elif choix == '4':
-            afficher_clients(utilisateur)
+            display_clients(utilisateur)
         elif choix == '5':
             afficher_contrats(utilisateur)
         elif choix == '6':
@@ -46,7 +46,7 @@ def afficher_menu_commercial(utilisateur):
         elif choix == '9':
             create_event(utilisateur)
 
-def creer_client(utilisateur):
+def add_client(utilisateur):
     console.print("[bold green]=== Création d'un client ===[/bold green]")
     full_name = Prompt.ask("Nom complet du client")
     email = Prompt.ask("Email du client")
@@ -69,7 +69,7 @@ def creer_client(utilisateur):
     console.print("[bold green]Client ajouté avec succès ![/bold green]")
     console.input("Appuyez sur Entrée pour continuer...")
 
-def modifier_client(utilisateur):
+def update_client(utilisateur):
     conn = connect_db()
     cursor = conn.cursor()
 
@@ -122,7 +122,7 @@ def modifier_client(utilisateur):
 
     conn.close()
 
-def creer_contrat(utilisateur):
+def add_contract(utilisateur):
     console.print("[bold green]=== Création d'un contrat ===[/bold green]")
     client_id = Prompt.ask("ID du client associé au contrat")
 
@@ -155,7 +155,7 @@ def creer_contrat(utilisateur):
     console.print("[bold green]Contrat créé avec succès ![/bold green]")
     console.input("Appuyez sur Entrée pour continuer...")
 
-def afficher_clients(utilisateur):
+def display_clients(utilisateur):
     console.print("[bold green]=== Liste des clients ===[/bold green]")
 
     conn = connect_db()
