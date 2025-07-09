@@ -41,14 +41,8 @@ def main():
 
                 if choix_interface == '2':
                     print("\n🚀 Vous quittez le menu principal. La CLI démarre.")
-                    if role == 'commercial':
-                        os.system('python client_cli.py')
-                    elif role == 'gestion':
-                        os.system('python cli_gestion.py')
-                    elif role == 'support':
-                        os.system('python event_cli.py')
-                    else:
-                        print("⛔️ Rôle inconnu. Accès refusé.")
+                    os.system('python client_cli.py')
+                    os.system('python contract_cli.py')
                     print("\n🔙 Vous êtes de retour dans le terminal principal.")
                     exit(0)
 
