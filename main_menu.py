@@ -20,20 +20,19 @@ def main():
 
         # Génération du token
         token = generer_token_pour_utilisateur(utilisateur['id'])
-        save_session(utilisateur['id'], token, utilisateur['role'])
+        save_session(utilisateur['id'], token, utilisateur['role'],utilisateur['name'])
         utilisateur['token'] = token
 
         print(f"🔐 Votre token est : {utilisateur['token']}")
-        print("💡 Conservez-le précieusement. Il va s'effacer dans 5 secondes.")
-        time.sleep(5)
+        print("💡 Il est conservé le temps de la session.")
+        time.sleep(2)
         os.system('cls' if os.name == 'nt' else 'clear')
-
-      
-
         
         role = utilisateur['role']
 
         print("\n=== Menu utilisateur ===")
+        print(f"\n👤 Connecté en tant que : {utilisateur['name']} ({utilisateur['role']})")
+
         print("1. Menu Contrat")
         print("2. Menu Client")
         print("3. Menu Evenement")

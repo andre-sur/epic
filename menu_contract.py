@@ -18,14 +18,16 @@ def afficher_menu_contrat(utilisateur):
         table.add_row("2.", "Modifier un contrat (commercial, gestion)")
         table.add_row("3.", "Supprimer un contrat (gestion)")
         table.add_row("4.", "Afficher mes contrats (tous)")
-        table.add_row("5.", "Afficher tous les contrats (tous)")
-        table.add_row("6.", "Afficher mes contrats non signés (tous)")
-        table.add_row("7.", "Afficher mes contrats non payés (tous)")
+        table.add_row("5.", "Afficher mes contrats non signés (tous)")
+        table.add_row("6.", "Afficher mes contrats non payés (tous)")
+        table.add_row("7.", "Afficher tous les contrats (tous)")
+        table.add_row("8.", "Afficher tous les contrats non payés (tous)")
+        table.add_row("9.", "Afficher tous les contrats non signés (tous)")
 
         table.add_row("8.", "[red]Retour au menu précédent[/red]")
         console.print(table)
 
-        choix = Prompt.ask("Veuillez entrer votre choix", choices=["1", "2", "3", "4", "5","6","7"])
+        choix = Prompt.ask("Veuillez entrer votre choix", choices=["1", "2", "3", "4", "5","6","7","8","9"])
 
         if choix == "1":
             # Exemple : bloquer selon rôle
@@ -50,14 +52,17 @@ def afficher_menu_contrat(utilisateur):
                 console.input("Appuyez sur Entrée pour continuer...")
 
         elif choix == "4":
-            display_my_contracts(utilisateur)
-
+            display_filtered_contracts(utilisateur,0,0)
         elif choix == "5":
-            display_all_contracts()
+            display_filtered_contracts(utilisateur,unpaid=0,unsigned=1)
         elif choix == "6":
             display_filtered_contracts(utilisateur,1,0)
         elif choix == "7":
-            display_filtered_contracts(utilisateur,0,1)
+            display_filtered_contracts(utilisateur=None,unpaid=0,unsigned=0)
+        elif choix == "8":
+            display_filtered_contracts(utilisateur=None,unpaid=1,unsigned=0)
+        elif choix == "9":
+            display_filtered_contracts(utilisateur=None,unpaid=0,unsigned=1)
 
 def add_contract(utilisateur):
     console.print("[bold green]=== Création d'un contrat ===[/bold green]")
@@ -149,84 +154,58 @@ def delete_contract(utilisateur):
     conn.close()
     console.input("Appuyez sur Entrée pour continuer...")
 
-def display_my_contracts(utilisateur):
-    console.print("[bold green]=== Liste de mes contrats ===[/bold green]")
-
-    conn = connect_db()
-    cursor = conn.cursor()
-    cursor.execute("""
-        SELECT id, client_id, total_amount, amount_due, is_signed
-        FROM contract
-        WHERE commercial_id = ?
-    """, (utilisateur['id'],))
-    contrats = cursor.fetchall()
-    conn.close()
-
-    if not contrats:
-        console.print("[yellow]Aucun contrat trouvé.[/yellow]")
-    else:
-        table = Table(show_header=True, header_style="bold magenta")
-        table.add_column("ID")
-        table.add_column("Client ID")
-        table.add_column("Montant total", justify="right")
-        table.add_column("Montant dû", justify="right")
-        table.add_column("Signé", justify="center")
-
-        for c in contrats:
-            signe = "[green]Oui[/green]" if c[4] else "[red]Non[/red]"
-            table.add_row(str(c[0]), str(c[1]), f"{c[2]:.2f} €", f"{c[3]:.2f} €", signe)
-
-        console.print(table)
-
-    console.input("Appuyez sur Entrée pour continuer...")
-
-def display_all_contracts():
-    console.print("[bold green]=== Liste de tous les contrats ===[/bold green]")
-
-    conn = connect_db()
-    cursor = conn.cursor()
-    cursor.execute("""
-        SELECT id, client_id, total_amount, amount_due, is_signed
-        FROM contract""")
-    contrats = cursor.fetchall()
-    conn.close()
-
-    if not contrats:
-        console.print("[yellow]Aucun contrat trouvé.[/yellow]")
-    else:
-        table = Table(show_header=True, header_style="bold magenta")
-        table.add_column("ID")
-        table.add_column("Client ID")
-        table.add_column("Montant total", justify="right")
-        table.add_column("Montant dû", justify="right")
-        table.add_column("Signé", justify="center")
-
-        for c in contrats:
-            signe = "[green]Oui[/green]" if c[4] else "[red]Non[/red]"
-            table.add_row(str(c[0]), str(c[1]), f"{c[2]:.2f} €", f"{c[3]:.2f} €", signe)
-
-        console.print(table)
-
-    console.input("Appuyez sur Entrée pour continuer...")
-
 def display_filtered_contracts(utilisateur,unpaid,unsigned):
     console.print("[bold green]=== Liste de tous les contrats ===[/bold green]")
 
     conn = connect_db()
     cursor = conn.cursor()
-    if unpaid==1:
+
+    if utilisateur :
+        cursor.execute("""
+            SELECT id, client_id, total_amount, amount_due, is_signed
+            FROM contract
+            WHERE commercial_id = ?
+        """, (utilisateur['id'],))
+
+    if utilisateur==None and unpaid==0 and unsigned==0:
+        cursor.execute("""
+            SELECT id, client_id, total_amount, amount_due, is_signed
+            FROM contract
+        """)
+        console.print("Tous les contrats")
+
+    if utilisateur==None and unpaid==1:
+        cursor.execute("""
+            SELECT id, client_id, total_amount, amount_due, is_signed
+            FROM contract
+            WHERE amount_due > 0
+        """)
+        console.print("Tous les contrats impayés")
+    
+    if utilisateur==None and unsigned==1:
+        cursor.execute("""
+            SELECT id, client_id, total_amount, amount_due, is_signed
+            FROM contract
+            WHERE is_signed=0
+        """)
+        console.print("Tous les contrats non-signés")
+
+    if utilisateur and unpaid==1:
         cursor.execute("""
         SELECT id, client_id, total_amount, amount_due, is_signed
         FROM contract
         WHERE commercial_id = ? AND amount_due > 0
         """, (utilisateur['id'],))
+        console.print(f"Tous les contrats impayés de [bold]{utilisateur['name']}[/bold]")
 
-    elif unsigned==1:
+    elif utilisateur and unsigned==1:
         cursor.execute("""
         SELECT id, client_id, total_amount, amount_due, is_signed
         FROM contract
         WHERE commercial_id = ? AND is_signed = 0
         """, (utilisateur['id'],))
+        console.print(f"Tous les contrats non-signés de [bold]{utilisateur['name']}[/bold]")
+
    
     contrats = cursor.fetchall()
     conn.close()
