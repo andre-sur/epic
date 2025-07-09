@@ -10,7 +10,7 @@ def connecter_utilisateur():
     if _current_user:
         print(f"🔐 Utilisateur déjà connecté : {_current_user['name']} ({_current_user['role']})")
         return _current_user
-
+    print("Afin de commencer votre session, entrez Email et Mot de passe.")
     email = input("Email : ").strip()
     password = getpass.getpass("Mot de passe : ").encode('utf-8')
 
