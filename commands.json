@@ -1,19 +1,19 @@
 [
   {
     "name": "ajouter_utilisateur",
-    "roles": ["commercial"],
+    "roles": ["gestion"],
     "help": "Créer un utilisateur.",
     "func": "lambda ctx: create_user()"
   },
   {
     "name": "modifier_utilisateur",
-    "roles": ["commercial"],
+    "roles": ["gestion"],
     "help": "Modifier un utilisateur.",
     "func": "lambda ctx: update_user()"
   },
   {
     "name": "supprimer_utilisateur",
-    "roles": ["commercial"],
+    "roles": ["gestion"],
     "help": "Supprimer un utilisateur.",
     "func": "lambda ctx: delete_user()"
   },
@@ -44,18 +44,24 @@
   {
     "name": "liste_contrats",
     "roles": ["commercial", "gestion", "support"],
-    "help": "Afficher la liste des contrats (tous).",
+    "help": "Afficher la liste de mes contrats (tous).",
     "func": "lambda ctx: display_filtered_contracts(ctx['user'], 0, 0)"
+  },
+   {
+    "name": "liste_all_contrats",
+    "roles": ["commercial", "gestion", "support"],
+    "help": "Afficher la liste de tous les contrats.",
+    "func": "lambda ctx: display_filtered_contracts(None, 0, 0)"
   },
   {
     "name": "contrats_non_signes",
-    "roles": ["commercial", "gestion", "support"],
+    "roles": ["commercial"],
     "help": "Afficher les contrats non signés.",
     "func": "lambda ctx: display_filtered_contracts(ctx['user'], 0, 1)"
   },
   {
     "name": "contrats_non_payes",
-    "roles": ["commercial", "gestion", "support"],
+    "roles": ["commercial"],
     "help": "Afficher les contrats non payés.",
     "func": "lambda ctx: display_filtered_contracts(ctx['user'], 1, 0)"
   },
@@ -103,13 +109,13 @@
   },
   {
     "name": "supprimer_client",
-    "roles": ["gestionnaire"],
+    "roles": ["gestion"],
     "help": "Supprimer un client.",
     "func": "lambda ctx: delete_client(ctx['user'])"
   },
   {
     "name": "afficher_clients",
-    "roles": ["commercial", "gestionnaire"],
+    "roles": ["commercial", "gestion","support"],
     "help": "Afficher la liste des clients.",
     "func": "lambda ctx: afficher_clients(ctx['user'])"
   }

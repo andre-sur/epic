@@ -27,44 +27,59 @@ def add_event(utilisateur):
     conn.close()
 
     console.print("[bold green]✅ Événement créé avec succès ![/bold green]")
-    console.input("Appuyez sur Entrée pour continuer...")
-
+    
 def update_event(utilisateur):
     console.print("[bold green]=== Modification d'un événement ===[/bold green]")
     event_id = Prompt.ask("ID de l'événement à modifier")
 
     conn = connect_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM event WHERE id = ? AND support_id = ?", (event_id, utilisateur['id']))
+
+    # Vérifier si l'événement existe et est accessible
+    if utilisateur['role'] == 'gestion':
+        cursor.execute("SELECT * FROM event WHERE id = ?", (event_id,))
+    else:
+        cursor.execute("SELECT * FROM event WHERE id = ? AND support_id = ?", (event_id, utilisateur['id']))
+
     event = cursor.fetchone()
 
     if not event:
         console.print("[red]Événement introuvable ou non lié à vous.[/red]")
         conn.close()
-        console.input("Appuyez sur Entrée pour continuer...")
         return
 
-    colonnes = [desc[0] for desc in cursor.description]
-    event_data = dict(zip(colonnes, event))
+    # On extrait les colonnes (d’après l’ordre du SELECT *)
+    _, contract_id, support_id, start_date, end_date, location, attendees, notes = event
 
-    console.print("[yellow]Laisser vide pour garder la valeur actuelle.[/yellow]")
-    new_contract_id = Prompt.ask(f"ID du contrat [{event_data['contract_id']}]", default=str(event_data['contract_id']))
-    new_start = Prompt.ask(f"Date début [{event_data['start_date']}]", default=event_data['start_date'])
-    new_end = Prompt.ask(f"Date fin [{event_data['end_date']}]", default=event_data['end_date'])
-    new_location = Prompt.ask(f"Lieu [{event_data['location']}]", default=event_data['location'])
-    new_attendees = Prompt.ask(f"Participants [{event_data['attendees']}]", default=str(event_data['attendees']))
-    new_notes = Prompt.ask(f"Notes [{event_data['notes'] or ''}]", default=event_data['notes'] or "")
+    if utilisateur['role'] == 'gestion':
+        console.print(f"[cyan]Événement actuel : support_id={support_id}[/cyan]")
+        new_support_id = Prompt.ask("ID du nouveau support associé", default=str(support_id) if support_id else "")
+        cursor.execute("UPDATE event SET support_id = ? WHERE id = ?", (new_support_id, event_id))
+        conn.commit()
+        console.print("[green]✅ Support associé modifié avec succès.[/green]")
 
-    cursor.execute("""
-        UPDATE event
-        SET contract_id = ?, start_date = ?, end_date = ?, location = ?, attendees = ?, notes = ?
-        WHERE id = ?
-    """, (new_contract_id, new_start, new_end, new_location, new_attendees, new_notes, event_id))
-    conn.commit()
+    else:
+        console.print(f"[cyan]Événement actuel :\n"
+                      f"Start date: {start_date}, End date: {end_date}, "
+                      f"Location: {location}, Attendees: {attendees}, Notes: {notes}[/cyan]")
+
+        new_start_date = Prompt.ask("Nouvelle date de début (AAAA-MM-JJ)", default=start_date)
+        new_end_date = Prompt.ask("Nouvelle date de fin (AAAA-MM-JJ)", default=end_date)
+        new_location = Prompt.ask("Nouveau lieu", default=location)
+        new_attendees = Prompt.ask("Nombre de participants", default=str(attendees))
+        new_notes = Prompt.ask("Notes", default=notes or "")
+
+        cursor.execute("""
+            UPDATE event
+            SET start_date = ?, end_date = ?, location = ?, attendees = ?, notes = ?
+            WHERE id = ?
+        """, (new_start_date, new_end_date, new_location, int(new_attendees), new_notes, event_id))
+
+        conn.commit()
+        console.print("[green]✅ Événement modifié avec succès.[/green]")
+
     conn.close()
-
-    console.print("[green]✅ Événement modifié avec succès.[/green]")
-    console.input("Appuyez sur Entrée pour continuer...")
+   # console.input("Appuyez sur Entrée pour continuer...")
 
 def delete_event(utilisateur):
     console.print("[bold red]=== Suppression d'un événement ===[/bold red]")
@@ -81,7 +96,7 @@ def delete_event(utilisateur):
         console.print("[green]✅ Événement supprimé avec succès.[/green]")
 
     conn.close()
-    console.input("Appuyez sur Entrée pour continuer...")
+    
 
 def display_events(utilisateur, support):
     console.print("[bold green]=== Liste des événements ===[/bold green]")
@@ -121,4 +136,4 @@ def display_events(utilisateur, support):
             )
         console.print(table)
 
-    console.input("Appuyez sur Entrée pour continuer...")
+    

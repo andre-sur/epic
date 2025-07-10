@@ -40,7 +40,6 @@ def add_contract(utilisateur):
     conn.close()
 
     console.print("[bold green]Contrat créé avec succès ![/bold green]")
-    console.input("Appuyez sur Entrée pour continuer...")
 
 def update_contract(utilisateur):
     console.print("[bold green]=== Modification d'un contrat ===[/bold green]")
@@ -78,7 +77,6 @@ def update_contract(utilisateur):
     conn.close()
 
     console.print("[green]✅ Contrat modifié avec succès.[/green]")
-    console.input("Appuyez sur Entrée pour continuer...")
 
 def delete_contract(utilisateur):
     console.print("[bold red]=== Suppression d'un contrat ===[/bold red]")
@@ -96,7 +94,6 @@ def delete_contract(utilisateur):
         console.print("[green]✅ Contrat supprimé avec succès.[/green]")
 
     conn.close()
-    console.input("Appuyez sur Entrée pour continuer...")
 
 def display_filtered_contracts(utilisateur, unpaid, unsigned):
     console.print("[bold green]=== Liste des contrats ===[/bold green]")
@@ -175,4 +172,3 @@ def display_filtered_contracts(utilisateur, unpaid, unsigned):
 
         console.print(table)
 
-    console.input("Appuyez sur Entrée pour continuer...")

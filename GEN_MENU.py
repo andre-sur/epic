@@ -49,11 +49,14 @@ def main_menu(utilisateur):
         for idx, cmd in enumerate(accessible_cmds, start=1):
             table.add_row(str(idx), cmd["help"])
 
-        table.add_row("0", "[red]Quitter[/red]")
+        table.add_row("0", "[red]Déconnecter & Quitter[/red]")
 
         console.print(table)
 
-        choix = Prompt.ask("Choisissez un numéro", choices=[str(i) for i in range(len(accessible_cmds)+1)])
+        choix = Prompt.ask(
+            "Choisissez un numéro",
+            choices=[str(i) for i in range(len(accessible_cmds)+1)]
+        )
 
         if choix == "0":
             console.print("[bold red]Au revoir ![/bold red]")
@@ -63,8 +66,8 @@ def main_menu(utilisateur):
             print("✅ Token supprimé, utilisateur déconnecté.")
             break
         else:
-            idx = int(choix)-1
-            ctx = {"user": utilisateur}
+            idx = int(choix) - 1
+            ctx = {"user": utilisateur}  # ctx contient l’utilisateur
             try:
                 accessible_cmds[idx]["func"](ctx)
             except Exception as e:
@@ -75,11 +78,16 @@ def main_menu(utilisateur):
 # === Point d’entrée ===
 if __name__ == "__main__":
     utilisateur = get_cached_user()
-    if not utilisateur:
-        utilisateur = connecter_utilisateur()
-        save_user_session(utilisateur)
 
-    # Optionnel : générer token etc., si besoin
+    # Tant qu’on n’a pas d’utilisateur valide, on redemande
+    while not utilisateur:
+        utilisateur = connecter_utilisateur()
+        if utilisateur:
+            save_user_session(utilisateur)
+        else:
+            print("⛔️ Connexion échouée, réessayez.\n")
+
+    # Optionnel : si tu veux gérer un token
     # token = generer_token_pour_utilisateur(utilisateur['id'])
     # utilisateur['token'] = token
 

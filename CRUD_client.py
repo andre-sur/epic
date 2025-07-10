@@ -30,7 +30,6 @@ def add_client(utilisateur):
     conn.close()
 
     console.print("[bold green]✅ Client créé avec succès ![/bold green]")
-    console.input("Appuyez sur Entrée pour continuer...")
 
 def update_client(utilisateur):
     console.print("[bold green]=== Modification d'un client ===[/bold green]")
@@ -68,7 +67,7 @@ def update_client(utilisateur):
     conn.close()
 
     console.print("[green]✅ Client modifié avec succès.[/green]")
-    console.input("Appuyez sur Entrée pour continuer...")
+    
 
 def delete_client(utilisateur):
     console.print("[bold red]=== Suppression d'un client ===[/bold red]")
@@ -85,7 +84,6 @@ def delete_client(utilisateur):
         console.print("[green]✅ Client supprimé avec succès.[/green]")
 
     conn.close()
-    console.input("Appuyez sur Entrée pour continuer...")
 
 def afficher_clients(utilisateur):
     console.print("[bold green]=== Liste des clients ===[/bold green]")
@@ -117,4 +115,3 @@ def afficher_clients(utilisateur):
 
         console.print(table)
 
-    console.input("Appuyez sur Entrée pour continuer...")

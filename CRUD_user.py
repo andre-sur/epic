@@ -33,7 +33,7 @@ def create_user():
         console.print(f"[red]❌ Erreur lors de la création : {e}[/red]")
     finally:
         conn.close()
-    console.input("Appuyez sur Entrée pour continuer...")
+
 
 def update_user():
     console.print("[bold yellow]=== Modification d'un utilisateur ===[/bold yellow]")
@@ -85,7 +85,6 @@ def update_user():
         console.print(f"[red]❌ Erreur lors de la modification : {e}[/red]")
     finally:
         conn.close()
-    console.input("Appuyez sur Entrée pour continuer...")
 
 def delete_user():
     console.print("[bold red]=== Suppression d'un utilisateur ===[/bold red]")
@@ -111,7 +110,6 @@ def delete_user():
         console.print("[yellow]Suppression annulée.[/yellow]")
 
     conn.close()
-    console.input("Appuyez sur Entrée pour continuer...")
 
 def display_users():
     console.print("[bold cyan]=== Liste des utilisateurs ===[/bold cyan]")
@@ -133,4 +131,3 @@ def display_users():
         for u in users:
             table.add_row(str(u[0]), u[1], u[2], u[3])
         console.print(table)
-    console.input("Appuyez sur Entrée pour continuer...")
