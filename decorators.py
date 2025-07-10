@@ -17,3 +17,5 @@ def require_role(*roles_autorises):
             return f(*args, **kwargs)
         return wrapper
     return decorator
+
+

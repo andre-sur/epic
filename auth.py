@@ -1,9 +1,13 @@
 import sqlite3
 import getpass
 import bcrypt
+import os
+import json
 
 DB_PATH = 'epic_crm.db'
 _current_user = None
+SESSION_FILE = ".session"
+
 
 def connecter_utilisateur():
     global _current_user
@@ -25,6 +29,8 @@ def connecter_utilisateur():
         if bcrypt.checkpw(password, hashed_password.encode('utf-8')):
             print(f"✅ Connecté avec succès – {name} ({role})")
             _current_user = {'id': user_id, 'name': name, 'email': email, 'role': role}
+            save_user_session(_current_user)
+
             return _current_user
         else:
             print("❌ Mot de passe incorrect.")
@@ -39,3 +45,13 @@ def deconnecter_utilisateur():
         return
     print(f"🔓 Déconnexion de {_current_user['name']}.")
     _current_user = None
+
+def get_cached_user():
+    if os.path.exists(SESSION_FILE):
+        with open(SESSION_FILE, "r") as f:
+            return json.load(f)
+    return None
+
+def save_user_session(utilisateur):
+    with open(SESSION_FILE, "w") as f:
+        json.dump(utilisateur, f)

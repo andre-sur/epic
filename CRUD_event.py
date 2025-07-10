@@ -1,59 +1,12 @@
 import sqlite3
 from rich.console import Console
-from rich.table import Table
 from rich.prompt import Prompt
+from rich.table import Table
 
 console = Console()
 
 def connect_db():
     return sqlite3.connect('epic_crm.db')
-
-def afficher_menu_event(utilisateur):
-    while True:
-        console.clear()
-        console.rule(f"[bold cyan]Menu Événements – Bienvenue {utilisateur['name']}[/bold cyan]")
-
-        table = Table(show_header=False, show_edge=False)
-        table.add_row("1.", "Créer un événement (commercial)")
-        table.add_row("2.", "Modifier un événement (gestion, support)")
-        table.add_row("3.", "Supprimer un événement (gestion)")
-        table.add_row("4.", "Afficher mes événements (support)")
-        table.add_row("5.", "Afficher tous les événements (tous)")
-        table.add_row("6.", "Afficher les événements sans support (gestion)")
-        table.add_row("7.", "[red]Retour au menu précédent[/red]")
-        console.print(table)
-
-        choix = Prompt.ask("Veuillez entrer votre choix", choices=["1", "2", "3", "4", "5","6"])
-
-        if choix == "1":
-            if utilisateur['role'] == 'commercial':
-                add_event(utilisateur)
-            else:
-                console.print("[red]Vous n'avez pas la permission de créer un événement.[/red]")
-                console.input("Appuyez sur Entrée pour continuer...")
-
-        elif choix == "2":
-            if utilisateur['role'] == 'gestion' or utilisateur['role'] == 'support':
-                update_event(utilisateur)
-            else:
-                console.print("[red]Vous n'avez pas la permission de modifier un événement.[/red]")
-                console.input("Appuyez sur Entrée pour continuer...")
-
-        elif choix == "3":
-            if utilisateur['role'] == 'gestion':
-                delete_event(utilisateur)
-            else:
-                console.print("[red]Vous n'avez pas la permission de supprimer un événement.[/red]")
-                console.input("Appuyez sur Entrée pour continuer...")
-
-        elif choix == "4":
-            display_events(utilisateur,support=1)
-
-        elif choix == "5":
-            display_events(utilisateur=None,support=0)
-
-        elif choix == "6":
-            break
 
 def add_event(utilisateur):
     console.print("[bold green]=== Création d'un événement ===[/bold green]")
@@ -66,12 +19,10 @@ def add_event(utilisateur):
 
     conn = connect_db()
     cursor = conn.cursor()
-
     cursor.execute("""
         INSERT INTO event (contract_id, support_id, start_date, end_date, location, attendees, notes)
         VALUES (?, ?, ?, ?, ?, ?, ?)
     """, (contract_id, utilisateur['id'], start_date, end_date, location, attendees, notes))
-
     conn.commit()
     conn.close()
 
@@ -84,8 +35,6 @@ def update_event(utilisateur):
 
     conn = connect_db()
     cursor = conn.cursor()
-
-    # Vérifier que l'événement est lié au support connecté
     cursor.execute("SELECT * FROM event WHERE id = ? AND support_id = ?", (event_id, utilisateur['id']))
     event = cursor.fetchone()
 
@@ -104,14 +53,13 @@ def update_event(utilisateur):
     new_end = Prompt.ask(f"Date fin [{event_data['end_date']}]", default=event_data['end_date'])
     new_location = Prompt.ask(f"Lieu [{event_data['location']}]", default=event_data['location'])
     new_attendees = Prompt.ask(f"Participants [{event_data['attendees']}]", default=str(event_data['attendees']))
-    new_notes = Prompt.ask(f"Notes [{event_data['notes']}]", default=event_data['notes'] or "")
+    new_notes = Prompt.ask(f"Notes [{event_data['notes'] or ''}]", default=event_data['notes'] or "")
 
     cursor.execute("""
         UPDATE event
         SET contract_id = ?, start_date = ?, end_date = ?, location = ?, attendees = ?, notes = ?
         WHERE id = ?
     """, (new_contract_id, new_start, new_end, new_location, new_attendees, new_notes, event_id))
-
     conn.commit()
     conn.close()
 
@@ -124,7 +72,6 @@ def delete_event(utilisateur):
 
     conn = connect_db()
     cursor = conn.cursor()
-
     cursor.execute("SELECT id FROM event WHERE id = ?", (event_id,))
     if not cursor.fetchone():
         console.print("[red]Événement introuvable.[/red]")
@@ -136,24 +83,22 @@ def delete_event(utilisateur):
     conn.close()
     console.input("Appuyez sur Entrée pour continuer...")
 
-def display_events(utilisateur,support):
+def display_events(utilisateur, support):
     console.print("[bold green]=== Liste des événements ===[/bold green]")
-
     conn = connect_db()
     cursor = conn.cursor()
-    if utilisateur :
-        cursor.execute("""
-            SELECT id, contract_id, support_id, start_date, end_date, location, attendees, notes
-            FROM event
-        """)
+
+    if utilisateur:
+        cursor.execute("SELECT id, contract_id, support_id, start_date, end_date, location, attendees, notes FROM event")
         console.print("Tous les contrats")
-    elif utilisateur==None and support==0:
+    elif utilisateur is None and support == 0:
         cursor.execute("""
             SELECT id, contract_id, support_id, start_date, end_date, location, attendees, notes
             FROM event
-            WHERE support_id iS NOT NULL
+            WHERE support_id IS NOT NULL
         """)
         console.print("Les contrats sans support associé")
+
     events = cursor.fetchall()
     conn.close()
 
@@ -174,10 +119,6 @@ def display_events(utilisateur,support):
             table.add_row(
                 str(e[0]), str(e[1]), str(e[2] or "-"), e[3], e[4], e[5], str(e[6] or "0"), e[7] or "-"
             )
-
         console.print(table)
 
-# Exemple pour tester
-if __name__ == "__main__":
-    utilisateur_exemple = {"id": 3, "name": "Luc", "role": "support"}
-    afficher_menu_event(utilisateur_exemple)
+    console.input("Appuyez sur Entrée pour continuer...")

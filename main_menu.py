@@ -44,8 +44,8 @@ def main():
 
         if choix_interface == '5':
                     print("\n🚀 Vous quittez le menu principal. La CLI démarre.")
-                    os.system('python client_cli.py')
-                    os.system('python contract_cli.py')
+                    os.system('python cli_general.py')
+                    
                     print("\n🔙 Vous êtes de retour dans le terminal principal.")
                     exit(0)
 

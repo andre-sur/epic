@@ -1,0 +1,116 @@
+[
+  {
+    "name": "ajouter_utilisateur",
+    "roles": ["commercial"],
+    "help": "Créer un utilisateur.",
+    "func": "lambda ctx: create_user()"
+  },
+  {
+    "name": "modifier_utilisateur",
+    "roles": ["commercial"],
+    "help": "Modifier un utilisateur.",
+    "func": "lambda ctx: update_user()"
+  },
+  {
+    "name": "supprimer_utilisateur",
+    "roles": ["commercial"],
+    "help": "Supprimer un utilisateur.",
+    "func": "lambda ctx: delete_user()"
+  },
+  {
+    "name": "liste_utilisateurs",
+    "roles": ["commercial", "gestion", "support"],
+    "help": "Afficher la liste des utilisateurs.",
+    "func": "lambda ctx: display_users()"
+  },
+  {
+    "name": "ajouter_contrat",
+    "roles": ["gestion"],
+    "help": "Créer un contrat.",
+    "func": "lambda ctx: add_contract(ctx['user'])"
+  },
+  {
+    "name": "modifier_contrat",
+    "roles": ["gestion", "commercial"],
+    "help": "Modifier un contrat.",
+    "func": "lambda ctx: update_contract(ctx['user'])"
+  },
+  {
+    "name": "supprimer_contrat",
+    "roles": ["gestion"],
+    "help": "Supprimer un contrat.",
+    "func": "lambda ctx: delete_contract(ctx['user'])"
+  },
+  {
+    "name": "liste_contrats",
+    "roles": ["commercial", "gestion", "support"],
+    "help": "Afficher la liste des contrats (tous).",
+    "func": "lambda ctx: display_filtered_contracts(ctx['user'], 0, 0)"
+  },
+  {
+    "name": "contrats_non_signes",
+    "roles": ["commercial", "gestion", "support"],
+    "help": "Afficher les contrats non signés.",
+    "func": "lambda ctx: display_filtered_contracts(ctx['user'], 0, 1)"
+  },
+  {
+    "name": "contrats_non_payes",
+    "roles": ["commercial", "gestion", "support"],
+    "help": "Afficher les contrats non payés.",
+    "func": "lambda ctx: display_filtered_contracts(ctx['user'], 1, 0)"
+  },
+  {
+    "name": "creer_evenement",
+    "roles": ["commercial"],
+    "help": "Créer un événement.",
+    "func": "lambda ctx: add_event(ctx['user'])"
+  },
+  {
+    "name": "modifier_evenement",
+    "roles": ["gestion", "support"],
+    "help": "Modifier un événement.",
+    "func": "lambda ctx: update_event(ctx['user'])"
+  },
+  {
+    "name": "supprimer_evenement",
+    "roles": ["gestion"],
+    "help": "Supprimer un événement.",
+    "func": "lambda ctx: delete_event(ctx['user'])"
+  },
+  {
+    "name": "afficher_mes_evenements",
+    "roles": ["support"],
+    "help": "Afficher mes événements.",
+    "func": "lambda ctx: display_events(ctx['user'], support=1)"
+  },
+  {
+    "name": "afficher_tous_les_evenements",
+    "roles": ["commercial", "gestion", "support"],
+    "help": "Afficher tous les événements.",
+    "func": "lambda ctx: display_events(None, support=0)"
+  },
+  {
+    "name": "creer_client",
+    "roles": ["commercial"],
+    "help": "Créer un client.",
+    "func": "lambda ctx: add_client(ctx['user'])"
+  },
+  {
+    "name": "modifier_client",
+    "roles": ["commercial"],
+    "help": "Modifier un client.",
+    "func": "lambda ctx: update_client(ctx['user'])"
+  },
+  {
+    "name": "supprimer_client",
+    "roles": ["gestionnaire"],
+    "help": "Supprimer un client.",
+    "func": "lambda ctx: delete_client(ctx['user'])"
+  },
+  {
+    "name": "afficher_clients",
+    "roles": ["commercial", "gestionnaire"],
+    "help": "Afficher la liste des clients.",
+    "func": "lambda ctx: afficher_clients(ctx['user'])"
+  }
+]

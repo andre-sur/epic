@@ -1,26 +1,50 @@
 import sqlite3
 import click
-from auth import connecter_utilisateur
+from auth import connecter_utilisateur, get_cached_user, save_user_session
+import inspect
+import sys
 
 DB_PATH = 'epic_crm.db'
 
+
 def connect_db():
+    """Établit une connexion à la base de données SQLite."""
     return sqlite3.connect(DB_PATH)
+
+
+def role_required(*allowed_roles):
+    """Décorateur Click qui restreint l'accès à une commande selon le rôle de l'utilisateur."""
+    def decorator(f):
+        @click.pass_context
+        def wrapper(ctx, *args, **kwargs):
+            user_role = ctx.obj.get('role')
+            if user_role not in allowed_roles:
+                click.echo(f"⛔️ Accès refusé. Rôle requis : {allowed_roles}")
+                ctx.exit()
+            return ctx.invoke(f, *args, **kwargs)
+        return wrapper
+    return decorator
+
 
 @click.group()
 @click.pass_context
 def cli(ctx):
-    """Interface CLI du commercial avec authentification."""
-    utilisateur = connecter_utilisateur()
-    if not utilisateur or utilisateur['role'] != 'commercial':
-        click.echo("⛔️ Accès refusé. Seuls les commerciaux peuvent utiliser cette interface.")
-        ctx.exit()
+    """Groupe principal des commandes CLI, gère la connexion utilisateur et le contexte."""
+    global _current_user
+    utilisateur = get_cached_user()
+    if not utilisateur:
+        utilisateur = connecter_utilisateur()
+    _current_user = utilisateur
+
     ctx.obj = {'user_id': utilisateur['id'], 'user_name': utilisateur['name']}
 
+
 @cli.command()
+@role_required('commercial')
 @click.pass_context
 def creer_client(ctx):
     """Créer un client et l'associer au commercial connecté."""
+    click.echo("Commande creer_client exécutée.")
     user_id = ctx.obj['user_id']
     conn = connect_db()
     cursor = conn.cursor()
@@ -44,7 +68,9 @@ def creer_client(ctx):
     finally:
         conn.close()
 
+
 @cli.command()
+@role_required('gestion')
 @click.pass_context
 def modifier_client(ctx):
     """Modifier un client appartenant au commercial connecté."""
@@ -87,7 +113,9 @@ def modifier_client(ctx):
     finally:
         conn.close()
 
+
 @cli.command()
+@role_required('commercial')
 @click.pass_context
 def afficher_clients(ctx):
     """Afficher tous les clients associés au commercial connecté."""
@@ -109,6 +137,7 @@ def afficher_clients(ctx):
     click.echo("=== Liste des clients ===")
     for c in clients:
         click.echo(f"ID: {c[0]}, Nom: {c[1]}, Email: {c[2]}, Téléphone: {c[3]}, Entreprise: {c[4]}, Créé: {c[5]}, Dernier contact: {c[6]}")
+
 
 @cli.command()
 @click.pass_context
@@ -143,6 +172,7 @@ def creer_contrat(ctx):
     finally:
         conn.close()
 
+
 @cli.command()
 @click.pass_context
 def afficher_contrats(ctx):
@@ -167,23 +197,92 @@ def afficher_contrats(ctx):
         signe = "Oui" if c[4] else "Non"
         click.echo(f"ID: {c[0]}, Client ID: {c[1]}, Montant total: {c[2]:.2f} €, Montant dû: {c[3]:.2f} €, Signé: {signe}, Créé le: {c[5]}")
 
-def afficher_resume():
-    click.echo("""
-============================================
-   Interface Commercial - Résumé des commandes
-============================================
 
-creer_client       : Crée un nouveau client et l'associe au commercial connecté.
-modifier_client    : Modifie un client existant appartenant au commercial.
-afficher_clients   : Affiche la liste des clients liés au commercial.
-creer_contrat      : Crée un contrat pour un client associé au commercial.
-afficher_contrats  : Affiche les contrats liés au commercial.
+@cli.command()
+@click.pass_context
+def creer_collaborateur(ctx):
+    """Créer un collaborateur (utilisateur)."""
+    conn = connect_db()
+    cursor = conn.cursor()
 
-Pour exécuter une commande, tapez par exemple :
-> python commercial_cli.py creer_client
+    name = click.prompt("Nom complet du collaborateur")
+    email = click.prompt("Email")
+    password = click.prompt("Mot de passe", hide_input=True, confirmation_prompt=True)
+    role = click.prompt("Rôle (gestion, commercial, support)", type=click.Choice(['gestion', 'commercial', 'support']))
 
-""")
+    try:
+        cursor.execute("""
+            INSERT INTO user (name, email, password, role) VALUES (?, ?, ?, ?)
+        """, (name, email, password, role))
+        conn.commit()
+        click.echo(f"✅ Collaborateur '{name}' créé avec succès !")
+    except sqlite3.IntegrityError as e:
+        click.echo(f"❌ Erreur lors de la création : {e}")
+    finally:
+        conn.close()
+
+
+@cli.command()
+@click.pass_context
+def modifier_collaborateur(ctx):
+    """Modifier un collaborateur existant."""
+    conn = connect_db()
+    cursor = conn.cursor()
+
+    user_id = click.prompt("ID du collaborateur à modifier", type=int)
+    cursor.execute("SELECT name, email, role FROM user WHERE id = ?", (user_id,))
+    user = cursor.fetchone()
+    if not user:
+        click.echo("❌ Collaborateur non trouvé.")
+        conn.close()
+        return
+
+    click.echo(f"Modification de : {user[0]} (email: {user[1]}, rôle: {user[2]})")
+    new_name = click.prompt("Nouveau nom complet (laisser vide pour ne pas modifier)", default="", show_default=False)
+    new_email = click.prompt("Nouvel email (laisser vide pour ne pas modifier)", default="", show_default=False)
+    new_role = click.prompt("Nouveau rôle (gestion, commercial, support) (laisser vide pour ne pas modifier)", default="", show_default=False)
+
+    try:
+        if new_name:
+            cursor.execute("UPDATE user SET name = ? WHERE id = ?", (new_name, user_id))
+        if new_email:
+            cursor.execute("UPDATE user SET email = ? WHERE id = ?", (new_email, user_id))
+        if new_role:
+            cursor.execute("UPDATE user SET role = ? WHERE id = ?", (new_role, user_id))
+        conn.commit()
+        click.echo("✅ Collaborateur modifié avec succès !")
+    except sqlite3.IntegrityError as e:
+        click.echo(f"❌ Erreur lors de la modification : {e}")
+    finally:
+        conn.close()
+
+
+@cli.command()
+@click.pass_context
+def afficher_collaborateurs(ctx):
+    """Afficher tous les collaborateurs."""
+    conn = connect_db()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT id, name, email, role FROM user")
+    users = cursor.fetchall()
+    conn.close()
+
+    if not users:
+        click.echo("⚠️ Aucun collaborateur trouvé.")
+        return
+
+    click.echo("=== Liste des collaborateurs ===")
+    for u in users:
+        click.echo(f"ID: {u[0]}, Nom: {u[1]}, Email: {u[2]}, Rôle: {u[3]}")
+
+def display_docstrings():
+    module_courant = sys.modules[__name__]
+    for nom, fonction in inspect.getmembers(module_courant, inspect.isfunction):
+        doc = fonction.__doc__ or "Pas de docstring."
+        print(f"Fonction : {nom}\nDocstring : {doc}\n{'-'*40}")
 
 if __name__ == "__main__":
-    afficher_resume()
+    display_docstrings()
     cli()
+
