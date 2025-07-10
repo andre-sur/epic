@@ -26,7 +26,6 @@ def role_required(*allowed_roles):
         return wrapper
     return decorator
 
-
 @click.group()
 @click.pass_context
 def cli(ctx):

@@ -17,10 +17,21 @@ def connect_db():
 
 
 def role_required(*allowed_roles):
-    """Décorateur Click qui restreint l'accès à une commande selon le rôle de l'utilisateur."""
     def decorator(f):
         @click.pass_context
         def wrapper(ctx, *args, **kwargs):
+            if ctx.obj is None:
+                utilisateur = get_cached_user()
+                if not utilisateur:
+                    utilisateur = connecter_utilisateur()
+                    save_user_session(utilisateur)
+                ctx.obj = {
+                    'utilisateur': utilisateur,
+                    'user_id': utilisateur['id'],
+                    'user_name': utilisateur['name'],
+                    'role': utilisateur['role']
+                }
+
             user_role = ctx.obj.get('role')
             if user_role not in allowed_roles:
                 click.echo(f"⛔️ Accès refusé. Rôle requis : {allowed_roles}")
@@ -28,7 +39,6 @@ def role_required(*allowed_roles):
             return ctx.invoke(f, *args, **kwargs)
         return wrapper
     return decorator
-
 
 @click.group()
 @click.pass_context
@@ -40,12 +50,14 @@ def cli(ctx):
         save_user_session(utilisateur)
 
     # Stocker l'objet utilisateur complet dans ctx.obj
-    ctx.obj = {
+""" 
+   ctx = {
         'utilisateur': utilisateur,
         'user_id': utilisateur['id'],
         'user_name': utilisateur['name'],
         'role': utilisateur['role']
     }
+    """
 
 
 def create_command(func, roles, name, help_text):
