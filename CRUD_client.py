@@ -43,7 +43,7 @@ def update_client(utilisateur):
     if not client:
         console.print("[red]Client introuvable ou non lié à vous.[/red]")
         conn.close()
-        console.input("Appuyez sur Entrée pour continuer...")
+        
         return
 
     colonnes = [desc[0] for desc in cursor.description]
@@ -85,7 +85,7 @@ def delete_client(utilisateur):
 
     conn.close()
 
-def afficher_clients(utilisateur):
+def display_clients(utilisateur):
     console.print("[bold green]=== Liste des clients ===[/bold green]")
 
     conn = connect_db()
@@ -115,3 +115,39 @@ def afficher_clients(utilisateur):
 
         console.print(table)
 
+def display_all_clients(utilisateur):
+    console.print("[bold green]=== Liste de tous les clients ===[/bold green]")
+
+    conn = connect_db()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT id, full_name, email, phone, company_name, created_date, last_contact_date
+        FROM client
+    """)
+    clients = cursor.fetchall()
+    conn.close()
+
+    if not clients:
+        console.print("[yellow]Aucun client trouvé.[/yellow]")
+    else:
+        table = Table(show_header=True, header_style="bold magenta")
+        table.add_column("ID")
+        table.add_column("Nom complet")
+        table.add_column("Email")
+        table.add_column("Téléphone")
+        table.add_column("Société")
+        table.add_column("Créé le")
+        table.add_column("Dernier contact")
+
+        for c in clients:
+            table.add_row(
+                str(c[0]),
+                c[1] or "-",
+                c[2] or "-",
+                c[3] or "-",
+                c[4] or "-",
+                c[5] or "-",
+                c[6] or "-"
+            )
+
+        console.print(table)

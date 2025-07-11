@@ -47,7 +47,7 @@ def update_user():
     if not user:
         console.print("[red]❌ Utilisateur introuvable.[/red]")
         conn.close()
-        console.input("Appuyez sur Entrée pour continuer...")
+        
         return
 
     colonnes = ['id', 'name', 'email', 'role']
@@ -66,7 +66,7 @@ def update_user():
         if new_password != confirm_password:
             console.print("[red]❌ Les mots de passe ne correspondent pas.[/red]")
             conn.close()
-            console.input("Appuyez sur Entrée pour continuer...")
+            
             return
         hashed_password = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt())
 
@@ -98,7 +98,7 @@ def delete_user():
     if not user:
         console.print("[red]❌ Utilisateur introuvable.[/red]")
         conn.close()
-        console.input("Appuyez sur Entrée pour continuer...")
+        
         return
 
     confirm = Prompt.ask(f"Confirmer la suppression de l'utilisateur '{user[1]}' ? (o/n)", choices=['o', 'n'])

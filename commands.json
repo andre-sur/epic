@@ -20,7 +20,7 @@
   {
     "name": "liste_utilisateurs",
     "roles": ["commercial", "gestion", "support"],
-    "help": "Afficher la liste des utilisateurs.",
+    "help": "Tous les utilisateurs.",
     "func": "lambda ctx: display_users()"
   },
   {
@@ -43,26 +43,26 @@
   },
   {
     "name": "liste_contrats",
-    "roles": ["commercial", "gestion", "support"],
-    "help": "Afficher la liste de mes contrats (tous).",
+    "roles": ["commercial"],
+    "help": "Mes contrats.",
     "func": "lambda ctx: display_filtered_contracts(ctx['user'], 0, 0)"
   },
    {
     "name": "liste_all_contrats",
     "roles": ["commercial", "gestion", "support"],
-    "help": "Afficher la liste de tous les contrats.",
+    "help": "Tous les contrats.",
     "func": "lambda ctx: display_filtered_contracts(None, 0, 0)"
   },
   {
     "name": "contrats_non_signes",
     "roles": ["commercial"],
-    "help": "Afficher les contrats non signés.",
+    "help": "Les contrats non signés.",
     "func": "lambda ctx: display_filtered_contracts(ctx['user'], 0, 1)"
   },
   {
     "name": "contrats_non_payes",
     "roles": ["commercial"],
-    "help": "Afficher les contrats non payés.",
+    "help": "Les contrats non payés.",
     "func": "lambda ctx: display_filtered_contracts(ctx['user'], 1, 0)"
   },
   {
@@ -87,13 +87,13 @@
     "name": "afficher_mes_evenements",
     "roles": ["support"],
     "help": "Afficher mes événements.",
-    "func": "lambda ctx: display_events(ctx['user'], support=1)"
+    "func": "lambda ctx: display_my_events(ctx['user'], support=1)"
   },
   {
-    "name": "afficher_tous_les_evenements",
+    "name": "afficher_evenements",
     "roles": ["commercial", "gestion", "support"],
-    "help": "Afficher tous les événements.",
-    "func": "lambda ctx: display_events(None, support=0)"
+    "help": "Tous les événements.",
+    "func": "lambda ctx: display_all_events(ctx['user'], support=1)"
   },
   {
     "name": "creer_client",
@@ -114,9 +114,15 @@
     "func": "lambda ctx: delete_client(ctx['user'])"
   },
   {
+    "name": "afficher_mes_clients",
+    "roles": ["commercial"],
+    "help": "Mes clients.",
+    "func": "lambda ctx: display_clients(ctx['user'])"
+  },
+   {
     "name": "afficher_clients",
     "roles": ["commercial", "gestion","support"],
-    "help": "Afficher la liste des clients.",
-    "func": "lambda ctx: afficher_clients(ctx['user'])"
+    "help": "Tous les clients.",
+    "func": "lambda ctx: display_all_clients(ctx['user'])"
   }
 ]

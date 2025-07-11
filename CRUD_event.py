@@ -53,10 +53,26 @@ def update_event(utilisateur):
 
     if utilisateur['role'] == 'gestion':
         console.print(f"[cyan]Événement actuel : support_id={support_id}[/cyan]")
-        new_support_id = Prompt.ask("ID du nouveau support associé", default=str(support_id) if support_id else "")
-        cursor.execute("UPDATE event SET support_id = ? WHERE id = ?", (new_support_id, event_id))
-        conn.commit()
-        console.print("[green]✅ Support associé modifié avec succès.[/green]")
+        
+        while True:
+            new_support_id = Prompt.ask(
+                "ID du nouveau support associé",
+                default=str(support_id) if support_id else ""
+            )
+
+            # Vérifier que cet ID existe et qu'il correspond bien à un user avec rôle 'support'
+            cursor.execute("SELECT id FROM user WHERE id = ? AND role = 'support'", (new_support_id,))
+            result = cursor.fetchone()
+
+            if result:
+                # OK, l'ID est valide
+                cursor.execute("UPDATE event SET support_id = ? WHERE id = ?", (new_support_id, event_id))
+                conn.commit()
+                console.print("[green]✅ Support associé modifié avec succès.[/green]")
+                break
+            else:
+                console.print("[red]❌ ID invalide ou cet utilisateur n'est pas un support. Veuillez réessayer.[/red]")
+
 
     else:
         console.print(f"[cyan]Événement actuel :\n"
@@ -98,22 +114,49 @@ def delete_event(utilisateur):
     conn.close()
     
 
-def display_events(utilisateur, support):
+def display_my_events(utilisateur, support):
     console.print("[bold green]=== Liste des événements ===[/bold green]")
     conn = connect_db()
     cursor = conn.cursor()
 
     if utilisateur:
-        cursor.execute("SELECT id, contract_id, support_id, start_date, end_date, location, attendees, notes FROM event")
-        console.print("Tous les contrats")
-    elif utilisateur is None and support == 0:
         cursor.execute("""
-            SELECT id, contract_id, support_id, start_date, end_date, location, attendees, notes
+            SELECT id, contract_id, support_id, start_date, end_date, location, attendees, notes 
             FROM event
-            WHERE support_id IS NOT NULL
-        """)
-        console.print("Les contrats sans support associé")
+            WHERE support_id = ?
+    """, (utilisateur['id'],))
+        console.print("Mes événements")
 
+    events = cursor.fetchall()
+    conn.close()
+
+    if not events:
+        console.print("[yellow]Aucun événement trouvé.[/yellow]")
+    else:
+        table = Table(show_header=True, header_style="bold magenta")
+        table.add_column("ID")
+        table.add_column("Contrat ID")
+        table.add_column("Support ID")
+        table.add_column("Début")
+        table.add_column("Fin")
+        table.add_column("Lieu")
+        table.add_column("Participants")
+        table.add_column("Notes")
+
+        for e in events:
+            table.add_row(
+                str(e[0]), str(e[1]), str(e[2] or "-"), e[3], e[4], e[5], str(e[6] or "0"), e[7] or "-"
+            )
+        console.print(table)
+
+def display_all_events(utilisateur,support):
+    console.print("[bold green]=== Liste de tous les événements ===[/bold green]")
+    conn = connect_db()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT id, contract_id, support_id, start_date, end_date, location, attendees, notes FROM event")
+    console.print("Tous les événements")
+    
     events = cursor.fetchall()
     conn.close()
 

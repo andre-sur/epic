@@ -22,7 +22,7 @@ def add_contract(utilisateur):
 
     if not client:
         console.print("[red]Ce client ne vous est pas associé. Vous ne pouvez pas créer de contrat pour lui.[/red]")
-        console.input("Appuyez sur Entrée pour continuer...")
+        
         conn.close()
         return
 
@@ -54,7 +54,7 @@ def update_contract(utilisateur):
     if not contrat:
         console.print("[red]Contrat introuvable ou non lié à vous.[/red]")
         conn.close()
-        console.input("Appuyez sur Entrée pour continuer...")
+        
         return
 
     colonnes = [desc[0] for desc in cursor.description]
@@ -104,7 +104,7 @@ def display_filtered_contracts(utilisateur, unpaid, unsigned):
     # Cas : contrats de l'utilisateur
     if utilisateur and unpaid == 0 and unsigned == 0:
         cursor.execute("""
-            SELECT id, client_id, total_amount, amount_due, is_signed
+            SELECT id, client_id, commercial_id, total_amount, amount_due, is_signed
             FROM contract
             WHERE commercial_id = ?
         """, (utilisateur['id'],))
@@ -112,7 +112,7 @@ def display_filtered_contracts(utilisateur, unpaid, unsigned):
     # Cas : tous les contrats
     elif utilisateur is None and unpaid == 0 and unsigned == 0:
         cursor.execute("""
-            SELECT id, client_id, total_amount, amount_due, is_signed
+            SELECT id, client_id, commercial_id, total_amount, amount_due, is_signed
             FROM contract
         """)
         console.print("Tous les contrats")
@@ -120,7 +120,7 @@ def display_filtered_contracts(utilisateur, unpaid, unsigned):
     # Cas : tous les contrats impayés
     elif utilisateur is None and unpaid == 1:
         cursor.execute("""
-            SELECT id, client_id, total_amount, amount_due, is_signed
+            SELECT id, client_id, commercial_id, total_amount, amount_due, is_signed
             FROM contract
             WHERE amount_due > 0
         """)
@@ -129,7 +129,7 @@ def display_filtered_contracts(utilisateur, unpaid, unsigned):
     # Cas : tous les contrats non signés
     elif utilisateur is None and unsigned == 1:
         cursor.execute("""
-            SELECT id, client_id, total_amount, amount_due, is_signed
+            SELECT id, client_id, commercial_id, total_amount, amount_due, is_signed
             FROM contract
             WHERE is_signed=0
         """)
@@ -138,7 +138,7 @@ def display_filtered_contracts(utilisateur, unpaid, unsigned):
     # Cas : contrats impayés de l'utilisateur
     elif utilisateur and unpaid == 1:
         cursor.execute("""
-            SELECT id, client_id, total_amount, amount_due, is_signed
+            SELECT id, client_id, commercial_id, total_amount, amount_due, is_signed
             FROM contract
             WHERE commercial_id = ? AND amount_due > 0
         """, (utilisateur['id'],))
@@ -147,7 +147,7 @@ def display_filtered_contracts(utilisateur, unpaid, unsigned):
     # Cas : contrats non signés de l'utilisateur
     elif utilisateur and unsigned == 1:
         cursor.execute("""
-            SELECT id, client_id, total_amount, amount_due, is_signed
+            SELECT id, client_id, commercial_id, total_amount, amount_due, is_signed
             FROM contract
             WHERE commercial_id = ? AND is_signed = 0
         """, (utilisateur['id'],))
@@ -162,13 +162,14 @@ def display_filtered_contracts(utilisateur, unpaid, unsigned):
         table = Table(show_header=True, header_style="bold magenta")
         table.add_column("ID")
         table.add_column("Client ID")
+        table.add_column("Commercial ID")
         table.add_column("Montant total", justify="right")
         table.add_column("Montant dû", justify="right")
         table.add_column("Signé", justify="center")
 
         for c in contrats:
-            signe = "[green]Oui[/green]" if c[4] else "[red]Non[/red]"
-            table.add_row(str(c[0]), str(c[1]), f"{c[2]:.2f} €", f"{c[3]:.2f} €", signe)
+            signe = "[green]Oui[/green]" if c[5] else "[red]Non[/red]"
+            table.add_row(str(c[0]), str(c[1]), str(c[2]), f"{c[3]:.2f} €", f"{c[4]:.2f} €", signe)
 
         console.print(table)
 
