@@ -6,8 +6,8 @@ from token_manager import generer_token_pour_utilisateur, clear_token_pour_utili
 from rich.console import Console
 from rich.table import Table
 from rich.prompt import Prompt
-from CRUD_user import create_user, update_user, delete_user, display_users
-from CRUD_event import add_event, update_event, delete_event, display_my_events, display_all_events
+from CRUD_user import create_user, update_user, delete_user, display_users, display_role
+from CRUD_event import add_event, update_event, delete_event, display_my_events, display_all_events,display_events_nosupport
 from CRUD_client import add_client, update_client, delete_client, display_clients, display_all_clients
 from CRUD_contract import add_contract, update_contract, delete_contract, display_filtered_contracts
 

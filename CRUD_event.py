@@ -103,18 +103,43 @@ def delete_event(utilisateur):
 
     conn = connect_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT id FROM event WHERE id = ?", (event_id,))
-    if not cursor.fetchone():
-        console.print("[red]Événement introuvable.[/red]")
-    else:
+
+    # Récupérer toutes les infos de l'événement
+    cursor.execute("""
+        SELECT id, contract_id, support_id, start_date, end_date, location, attendees, notes
+        FROM event WHERE id = ?
+    """, (event_id,))
+    event = cursor.fetchone()
+
+    if not event:
+        console.print("[red]❌ Événement introuvable.[/red]")
+        conn.close()
+        return
+
+    # Afficher un récapitulatif sous forme de tableau
+    table = Table(show_header=True, header_style="bold magenta")
+    table.add_column("Champ")
+    table.add_column("Valeur")
+
+    champs = ["ID", "Contrat ID", "Support ID", "Début", "Fin", "Lieu", "Participants", "Notes"]
+    for champ, valeur in zip(champs, event):
+        table.add_row(champ, str(valeur) if valeur is not None else "-")
+
+    console.print(table)
+
+    # Demander confirmation
+    confirm = Prompt.ask(f"[yellow]Voulez-vous vraiment supprimer cet événement ? (o/n)[/yellow]", choices=['o', 'n'])
+    if confirm == 'o':
         cursor.execute("DELETE FROM event WHERE id = ?", (event_id,))
         conn.commit()
         console.print("[green]✅ Événement supprimé avec succès.[/green]")
+    else:
+        console.print("[yellow]Suppression annulée.[/yellow]")
 
     conn.close()
     
 
-def display_my_events(utilisateur, support):
+def display_my_events(utilisateur):
     console.print("[bold green]=== Liste des événements ===[/bold green]")
     conn = connect_db()
     cursor = conn.cursor()
@@ -149,7 +174,7 @@ def display_my_events(utilisateur, support):
             )
         console.print(table)
 
-def display_all_events(utilisateur,support):
+def display_all_events(utilisateur):
     console.print("[bold green]=== Liste de tous les événements ===[/bold green]")
     conn = connect_db()
     cursor = conn.cursor()
@@ -179,4 +204,39 @@ def display_all_events(utilisateur,support):
             )
         console.print(table)
 
-    
+
+def display_events_nosupport(utilisateur):
+    console.print("[bold green]=== Liste des événements ===[/bold green]")
+    conn = connect_db()
+    cursor = conn.cursor()
+
+    if utilisateur:
+        cursor.execute("""
+            SELECT id, contract_id, support_id, start_date, end_date, location, attendees, notes 
+            FROM event
+            WHERE support_id IS NULL
+    """)
+        console.print("Evenements sans affectation d'un Support")
+
+    events = cursor.fetchall()
+    conn.close()
+
+    if not events:
+        console.print("[yellow]Aucun événement trouvé.[/yellow]")
+    else:
+        table = Table(show_header=True, header_style="bold magenta")
+        table.add_column("ID")
+        table.add_column("Contrat ID")
+        table.add_column("Support ID")
+        table.add_column("Début")
+        table.add_column("Fin")
+        table.add_column("Lieu")
+        table.add_column("Participants")
+        table.add_column("Notes")
+
+        for e in events:
+            table.add_row(
+                str(e[0]), str(e[1]), str(e[2] or "-"), e[3], e[4], e[5], str(e[6] or "0"), e[7] or "-"
+            )
+        console.print(table)
+  

@@ -92,7 +92,7 @@ def delete_user():
 
     conn = connect_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT id, name FROM user WHERE id = ?", (user_id,))
+    cursor.execute("SELECT id, name, role FROM user WHERE id = ?", (user_id,))
     user = cursor.fetchone()
 
     if not user:
@@ -101,7 +101,7 @@ def delete_user():
         
         return
 
-    confirm = Prompt.ask(f"Confirmer la suppression de l'utilisateur '{user[1]}' ? (o/n)", choices=['o', 'n'])
+    confirm = Prompt.ask(f"Supprimer: {user[1]} (role : {user[2]}) ? (o/n)", choices=['o', 'n'])
     if confirm == 'o':
         cursor.execute("DELETE FROM user WHERE id = ?", (user_id,))
         conn.commit()
@@ -117,6 +117,34 @@ def display_users():
     conn = connect_db()
     cursor = conn.cursor()
     cursor.execute("SELECT id, name, email, role FROM user")
+    users = cursor.fetchall()
+    conn.close()
+
+    if not users:
+        console.print("[yellow]Aucun utilisateur trouvé.[/yellow]")
+    else:
+        table = Table(show_header=True, header_style="bold magenta")
+        table.add_column("ID", style="dim")
+        table.add_column("Nom")
+        table.add_column("Email")
+        table.add_column("Rôle")
+        for u in users:
+            table.add_row(str(u[0]), u[1], u[2], u[3])
+        console.print(table)
+
+def display_role():
+    specific=""
+    while specific not in ["gestion","commercial","role"]:
+        specific=console.input("Quel rôle ?")
+
+    console.print(f"[bold cyan]=== Liste spécifique : {specific}===[/bold cyan]")
+
+    conn = connect_db()
+    cursor = conn.cursor()
+    cursor.execute("""SELECT id, name, email, role 
+    FROM user
+    WHERE role = ?
+    """, (specific,))
     users = cursor.fetchall()
     conn.close()
 

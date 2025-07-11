@@ -78,6 +78,8 @@ def update_contract(utilisateur):
 
     console.print("[green]✅ Contrat modifié avec succès.[/green]")
 
+from rich.prompt import Confirm
+
 def delete_contract(utilisateur):
     console.print("[bold red]=== Suppression d'un contrat ===[/bold red]")
     contrat_id = Prompt.ask("ID du contrat à supprimer")
@@ -85,15 +87,51 @@ def delete_contract(utilisateur):
     conn = connect_db()
     cursor = conn.cursor()
 
-    cursor.execute("SELECT id FROM contract WHERE id = ?", (contrat_id,))
-    if not cursor.fetchone():
-        console.print("[red]Contrat introuvable.[/red]")
+    # Vérifier si le contrat existe et récupérer ses infos
+    cursor.execute("""
+        SELECT id, client_id, commercial_id, total_amount, amount_due, created_date, is_signed
+        FROM contract
+        WHERE id = ?
+    """, (contrat_id,))
+    contrat = cursor.fetchone()
+
+    if not contrat:
+        console.print("[red]❌ Contrat introuvable.[/red]")
     else:
-        cursor.execute("DELETE FROM contract WHERE id = ?", (contrat_id,))
-        conn.commit()
-        console.print("[green]✅ Contrat supprimé avec succès.[/green]")
+        # Afficher le récapitulatif
+        console.print("[bold yellow]Voici les informations du contrat :[/bold yellow]")
+        table = Table(show_header=True, header_style="bold magenta")
+        table.add_column("Champ")
+        table.add_column("Valeur")
+
+        champs = ["ID", "ID Client", "ID Commercial", "Montant total", "Montant dû", "Date de création", "Signé"]
+        valeurs = [
+            str(contrat[0]),
+            str(contrat[1]),
+            str(contrat[2]),
+            f"{contrat[3]:.2f} €",
+            f"{contrat[4]:.2f} €",
+            contrat[5],
+            "Oui" if contrat[6] else "Non"
+        ]
+
+        for champ, valeur in zip(champs, valeurs):
+            table.add_row(champ, valeur)
+
+        console.print(table)
+
+        # Confirmation de l'utilisateur
+        confirmation = Confirm.ask("[bold red]⚠️ Voulez-vous vraiment supprimer ce contrat ?[/bold red]")
+
+        if confirmation:
+            cursor.execute("DELETE FROM contract WHERE id = ?", (contrat_id,))
+            conn.commit()
+            console.print("[green]✅ Contrat supprimé avec succès.[/green]")
+        else:
+            console.print("[cyan]Suppression annulée.[/cyan]")
 
     conn.close()
+
 
 def display_filtered_contracts(utilisateur, unpaid, unsigned):
     console.print("[bold green]=== Liste des contrats ===[/bold green]")

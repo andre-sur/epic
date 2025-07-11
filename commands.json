@@ -2,127 +2,139 @@
   {
     "name": "ajouter_utilisateur",
     "roles": ["gestion"],
-    "help": "Créer un utilisateur.",
+    "help": "Collaborateur : créer",
     "func": "lambda ctx: create_user()"
   },
   {
     "name": "modifier_utilisateur",
     "roles": ["gestion"],
-    "help": "Modifier un utilisateur.",
+    "help": "Collaborateur : modifier",
     "func": "lambda ctx: update_user()"
   },
   {
     "name": "supprimer_utilisateur",
     "roles": ["gestion"],
-    "help": "Supprimer un utilisateur.",
+    "help": "Collaborateur : supprimer",
     "func": "lambda ctx: delete_user()"
   },
   {
     "name": "liste_utilisateurs",
     "roles": ["commercial", "gestion", "support"],
-    "help": "Tous les utilisateurs.",
+    "help": "Collaborateur : liste complète",
     "func": "lambda ctx: display_users()"
+  },
+   {
+    "name": "liste_utilisateurs_specifiques",
+    "roles": ["commercial", "gestion", "support"],
+    "help": "Collaborateur : liste par rôle",
+    "func": "lambda ctx: display_role()"
   },
   {
     "name": "ajouter_contrat",
     "roles": ["gestion"],
-    "help": "Créer un contrat.",
+    "help": "Contrat: créer",
     "func": "lambda ctx: add_contract(ctx['user'])"
   },
   {
     "name": "modifier_contrat",
     "roles": ["gestion", "commercial"],
-    "help": "Modifier un contrat.",
+    "help": "Contrat: modifier",
     "func": "lambda ctx: update_contract(ctx['user'])"
   },
   {
     "name": "supprimer_contrat",
     "roles": ["gestion"],
-    "help": "Supprimer un contrat.",
+    "help": "Contrat : supprimer",
     "func": "lambda ctx: delete_contract(ctx['user'])"
   },
   {
     "name": "liste_contrats",
     "roles": ["commercial"],
-    "help": "Mes contrats.",
+    "help": "Contrat : liste collaborateur en ligne",
     "func": "lambda ctx: display_filtered_contracts(ctx['user'], 0, 0)"
   },
    {
     "name": "liste_all_contrats",
     "roles": ["commercial", "gestion", "support"],
-    "help": "Tous les contrats.",
+    "help": "Contrat : liste complète",
     "func": "lambda ctx: display_filtered_contracts(None, 0, 0)"
   },
   {
     "name": "contrats_non_signes",
     "roles": ["commercial"],
-    "help": "Les contrats non signés.",
+    "help": "Contrat : non signés",
     "func": "lambda ctx: display_filtered_contracts(ctx['user'], 0, 1)"
   },
   {
     "name": "contrats_non_payes",
     "roles": ["commercial"],
-    "help": "Les contrats non payés.",
+    "help": "Contrat : non payés",
     "func": "lambda ctx: display_filtered_contracts(ctx['user'], 1, 0)"
   },
   {
     "name": "creer_evenement",
     "roles": ["commercial"],
-    "help": "Créer un événement.",
+    "help": "Evenement : créer",
     "func": "lambda ctx: add_event(ctx['user'])"
   },
   {
     "name": "modifier_evenement",
     "roles": ["gestion", "support"],
-    "help": "Modifier un événement.",
+    "help": "Evenement : modifier",
     "func": "lambda ctx: update_event(ctx['user'])"
   },
   {
     "name": "supprimer_evenement",
     "roles": ["gestion"],
-    "help": "Supprimer un événement.",
+    "help": "Evenement : supprimer",
     "func": "lambda ctx: delete_event(ctx['user'])"
   },
   {
     "name": "afficher_mes_evenements",
     "roles": ["support"],
-    "help": "Afficher mes événements.",
-    "func": "lambda ctx: display_my_events(ctx['user'], support=1)"
+    "help": "Evenement : liste pour collaborateur en ligne",
+    "func": "lambda ctx: display_my_events(ctx['user'])"
   },
   {
     "name": "afficher_evenements",
     "roles": ["commercial", "gestion", "support"],
-    "help": "Tous les événements.",
-    "func": "lambda ctx: display_all_events(ctx['user'], support=1)"
+    "help": "Evenement : liste complète",
+    "func": "lambda ctx: display_all_events(ctx['user'])"
+  },
+   {
+    "name": "afficher_evenements_vides",
+    "roles": ["gestion"],
+    "help": "Evénement : sans Support",
+    "func": "lambda ctx: display_events_nosupport(ctx['user'])"
   },
   {
     "name": "creer_client",
     "roles": ["commercial"],
-    "help": "Créer un client.",
+    "help": "Client : créer",
     "func": "lambda ctx: add_client(ctx['user'])"
   },
   {
     "name": "modifier_client",
     "roles": ["commercial"],
-    "help": "Modifier un client.",
+    "help": "Client : modifier",
     "func": "lambda ctx: update_client(ctx['user'])"
   },
   {
     "name": "supprimer_client",
     "roles": ["gestion"],
-    "help": "Supprimer un client.",
+    "help": "Client : supprimer",
     "func": "lambda ctx: delete_client(ctx['user'])"
   },
   {
     "name": "afficher_mes_clients",
     "roles": ["commercial"],
-    "help": "Mes clients.",
+    "help": "Client : liste du collaborateur en ligne",
     "func": "lambda ctx: display_clients(ctx['user'])"
   },
    {
     "name": "afficher_clients",
     "roles": ["commercial", "gestion","support"],
-    "help": "Tous les clients.",
+    "help": "Client : liste complète",
     "func": "lambda ctx: display_all_clients(ctx['user'])"
   }
 ]
