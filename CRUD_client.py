@@ -1,7 +1,7 @@
 # client_crud.py
 import sqlite3
 from rich.console import Console
-from rich.prompt import Prompt
+from rich.prompt import Prompt, Confirm
 from rich.table import Table
 
 console = Console()
@@ -75,7 +75,7 @@ def delete_client(utilisateur):
     conn = connect_db()
     cursor = conn.cursor()
 
-    # Vérifier si le client existe et récupérer ses infos
+    # Récupérer les infos du client pour récapitulatif
     cursor.execute("""
         SELECT id, full_name, email, phone, company_name, created_date, last_contact_date, commercial_id
         FROM client
@@ -86,36 +86,17 @@ def delete_client(utilisateur):
     if not client:
         console.print("[red]❌ Client introuvable.[/red]")
     else:
-        # Afficher le récapitulatif
-        console.print("[bold yellow]Voici les informations du client :[/bold yellow]")
+        # Afficher récapitulatif
         table = Table(show_header=True, header_style="bold magenta")
-        table.add_column("Champ")
-        table.add_column("Valeur")
-
-        champs = [
-            "ID", "Nom complet", "Email", "Téléphone",
-            "Entreprise", "Date de création", "Dernier contact", "ID Commercial"
-        ]
-        valeurs = [
-            str(client[0]),
-            client[1],
-            client[2],
-            client[3] if client[3] else "Non renseigné",
-            client[4] if client[4] else "Non renseigné",
-            client[5],
-            client[6] if client[6] else "Non renseigné",
-            str(client[7])
-        ]
-
-        for champ, valeur in zip(champs, valeurs):
+        champs = ["ID", "Nom complet", "Email", "Téléphone", "Entreprise", "Date création", "Dernier contact", "ID Commercial"]
+        for champ, valeur in zip(champs, [str(c) if c is not None else "" for c in client]):
             table.add_row(champ, valeur)
-
         console.print(table)
 
-        # Confirmation de l'utilisateur
-        confirmation = Confirm.ask("[bold red]⚠️ Voulez-vous vraiment supprimer ce client ?[/bold red]")
+        # Confirmation à la française
+        confirmation = Prompt.ask("[bold red]⚠️ Voulez-vous vraiment supprimer ce client ? (o/n)[/bold red]", choices=["o", "n"], default="n")
 
-        if confirmation:
+        if confirmation == "o":
             cursor.execute("DELETE FROM client WHERE id = ?", (client_id,))
             conn.commit()
             console.print("[green]✅ Client supprimé avec succès.[/green]")
@@ -123,7 +104,7 @@ def delete_client(utilisateur):
             console.print("[cyan]Suppression annulée.[/cyan]")
 
     conn.close()
-
+    
 def display_clients(utilisateur):
     console.print("[bold green]=== Liste des clients ===[/bold green]")
 

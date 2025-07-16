@@ -3,7 +3,7 @@ from client_cli import client
 
 @click.group()
 def cli():
-    """CLI EPIC CRM"""
+   
     pass
 
 cli.add_command(client)
