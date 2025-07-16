@@ -3,10 +3,24 @@ import click
 import sqlite3
 import json
 from auth import connecter_utilisateur, get_cached_user, save_user_session
-from CRUD_user import create_user, update_user, delete_user, display_users
-from CRUD_event import connect_db, add_event, update_event, delete_event, display_events
-from CRUD_client import connect_db, add_client, update_client, delete_client, afficher_clients
+from CRUD_user import create_user, update_user, delete_user, display_users, display_role
+from CRUD_event import add_event, update_event, delete_event, display_my_events, display_all_events,display_events_nosupport
+from CRUD_client import add_client, update_client, delete_client, display_clients, display_all_clients
 from CRUD_contract import add_contract, update_contract, delete_contract, display_filtered_contracts
+import sentry_sdk
+
+
+
+
+sentry_sdk.init(
+    dsn="https://7f070b8d8417b940e01da3d491c601b8@o4509518763917312.ingest.de.sentry.io/4509518772830288",
+    # Add data like request headers and IP for users,
+    # see https://docs.sentry.io/platforms/python/data-management/data-collected/ for more info
+    send_default_pii=True,
+
+    traces_sample_rate=1.0,  # pour le monitoring des performances (peut être 0.1 en prod)
+    environment="production", ) # ou "development"
+
 
 
 DB_PATH = 'epic_crm.db'
