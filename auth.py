@@ -14,7 +14,9 @@ def connecter_utilisateur():
         print(f"🔐 Utilisateur déjà connecté : {_current_user['name']} ({_current_user['role']})")
         return _current_user
 
-    print("Afin de commencer votre session, entrez Email et Mot de passe.")
+    print("CONNEXION DE L'UTILISATEUR NECESSAIRE")
+    print("=====================================")
+    print("Pour vous identifier, entrez Email et Mot de passe.")
     email = input("Email : ").strip()
     if not email:
         print("❌ L'email ne peut pas être vide.")

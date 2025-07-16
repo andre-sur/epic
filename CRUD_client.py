@@ -68,20 +68,59 @@ def update_client(utilisateur):
 
     console.print("[green]✅ Client modifié avec succès.[/green]")
     
-
 def delete_client(utilisateur):
     console.print("[bold red]=== Suppression d'un client ===[/bold red]")
     client_id = Prompt.ask("ID du client à supprimer")
 
     conn = connect_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT id FROM client WHERE id = ?", (client_id,))
-    if not cursor.fetchone():
-        console.print("[red]Client introuvable.[/red]")
+
+    # Vérifier si le client existe et récupérer ses infos
+    cursor.execute("""
+        SELECT id, full_name, email, phone, company_name, created_date, last_contact_date, commercial_id
+        FROM client
+        WHERE id = ?
+    """, (client_id,))
+    client = cursor.fetchone()
+
+    if not client:
+        console.print("[red]❌ Client introuvable.[/red]")
     else:
-        cursor.execute("DELETE FROM client WHERE id = ?", (client_id,))
-        conn.commit()
-        console.print("[green]✅ Client supprimé avec succès.[/green]")
+        # Afficher le récapitulatif
+        console.print("[bold yellow]Voici les informations du client :[/bold yellow]")
+        table = Table(show_header=True, header_style="bold magenta")
+        table.add_column("Champ")
+        table.add_column("Valeur")
+
+        champs = [
+            "ID", "Nom complet", "Email", "Téléphone",
+            "Entreprise", "Date de création", "Dernier contact", "ID Commercial"
+        ]
+        valeurs = [
+            str(client[0]),
+            client[1],
+            client[2],
+            client[3] if client[3] else "Non renseigné",
+            client[4] if client[4] else "Non renseigné",
+            client[5],
+            client[6] if client[6] else "Non renseigné",
+            str(client[7])
+        ]
+
+        for champ, valeur in zip(champs, valeurs):
+            table.add_row(champ, valeur)
+
+        console.print(table)
+
+        # Confirmation de l'utilisateur
+        confirmation = Confirm.ask("[bold red]⚠️ Voulez-vous vraiment supprimer ce client ?[/bold red]")
+
+        if confirmation:
+            cursor.execute("DELETE FROM client WHERE id = ?", (client_id,))
+            conn.commit()
+            console.print("[green]✅ Client supprimé avec succès.[/green]")
+        else:
+            console.print("[cyan]Suppression annulée.[/cyan]")
 
     conn.close()
 
