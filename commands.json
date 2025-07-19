@@ -31,7 +31,7 @@
   },
   {
     "name": "ajouter_contrat",
-    "roles": ["gestion"],
+    "roles": ["gestion","commercial"],
     "help": "Contrat: créer",
     "func": "lambda ctx: add_contract(ctx['user'])"
   },
@@ -111,19 +111,19 @@
     "name": "creer_client",
     "roles": ["commercial"],
     "help": "Client : créer",
-    "func": "lambda ctx: add_client(ctx['user'])"
+    "func": "lambda ctx: prompt_create(ctx['user'])"
   },
   {
     "name": "modifier_client",
     "roles": ["commercial"],
     "help": "Client : modifier",
-    "func": "lambda ctx: update_client(ctx['user'])"
+    "func": "lambda ctx: prompt_update(ctx['user'],'client')"
   },
   {
     "name": "supprimer_client",
     "roles": ["gestion"],
     "help": "Client : supprimer",
-    "func": "lambda ctx: delete_client(ctx['user'])"
+    "func": "lambda ctx: prompt_delete('client')"
   },
   {
     "name": "afficher_mes_clients",
