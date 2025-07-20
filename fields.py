@@ -18,9 +18,8 @@ FIELD_DEFINITIONS = {
     "total_amount": {"type": "float", "prompt": "Montant total du contrat"},
     "amount_due": {"type": "float", "prompt": "Montant restant dû"},
     "created_date": {"type": "date", "prompt": "Date de création (AAAA-MM-JJ)"},
-    "is_signed": {"type": "bool", "prompt": "Le contrat est-il signé ? (oui/non)"},
+    "is_signed": {"type": "bool", "prompt": "Le contrat est-il signé ? (1/0)"},
     },
-
     "user": {
     # "id" : auto-généré en base
     "name": {"type": "str", "prompt": "Nom d'utilisateur"},  # changé de "username" → "name"
@@ -29,10 +28,9 @@ FIELD_DEFINITIONS = {
     "role": {
         "type": "str",
         "prompt": "Rôle (gestion, commercial, support)",
-        "choices": ["gestion", "commercial", "support"]
+        "choices": ["gestion", "commercial", "support"]},
     },
     # "token" : optionnel et généralement non saisi manuellement
-
     "event": {
     # "id": auto
     "contract_id": {"type": "int", "prompt": "ID du contrat"},
@@ -42,6 +40,7 @@ FIELD_DEFINITIONS = {
     "location": {"type": "str", "prompt": "Lieu", "optional": True},
     "attendees": {"type": "int", "prompt": "Nombre de participants", "optional": True},
     "notes": {"type": "str", "prompt": "Remarques", "optional": True},
-},
 
+
+}
 }

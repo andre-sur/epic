@@ -18,17 +18,17 @@
     "func": "lambda ctx: delete_user()"
   },
   {
-    "name": "liste_utilisateurs",
+    "name": "liste_utilisateurs_filtre",
     "roles": ["commercial", "gestion", "support"],
-    "help": "Collaborateur : liste complète",
-    "func": "lambda ctx: prompt_display('user')"
+    "help": "Collaborateur : liste filtrée",
+    "func": "lambda ctx: prompt_display_with_filter('user')"
   },
-   {
-    "name": "liste_utilisateurs_specifiques",
-    "roles": ["commercial", "gestion", "support"],
-    "help": "Collaborateur : liste par rôle",
-    "func": "lambda ctx: display_role()"
-  },
+  {
+  "name": "liste_contrat_filtre",
+    "roles": ["commercial", "gestion","support"],
+    "help": "Contrat : liste filtrée",
+    "func": "lambda ctx: prompt_display_with_filter('contract')"
+   },
   {
     "name": "ajouter_contrat",
     "roles": ["gestion","commercial"],
@@ -107,12 +107,19 @@
     "help": "Evenement : liste complète",
     "func": "lambda ctx: prompt_display('event')"
   },
+  
    {
     "name": "afficher_evenements_vides",
     "roles": ["gestion"],
     "help": "Evénement : sans Support",
     "func": "lambda ctx: display_events_nosupport(ctx['user'])"
   },
+  {
+  "name": "liste_evenements_filtre",
+    "roles": ["commercial", "gestion","support"],
+    "help": "Evenements : liste filtrée",
+    "func": "lambda ctx: prompt_display_with_filter('event')"
+   },
   {
     "name": "creer_client",
     "roles": ["commercial"],

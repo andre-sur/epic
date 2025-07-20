@@ -163,34 +163,52 @@ def prompt_display_with_filter(model_name):
         console.print(f"[red]Modèle '{model_name}' inconnu.[/red]")
         return
 
-    # Liste des champs disponibles
-    available_fields = list(FIELD_DEFINITIONS[model_name].keys())
-    if not available_fields:
+    # Obtenir les champs filtrables
+    field_definitions = FIELD_DEFINITIONS.get(model_name)
+    print(field_definitions)
+    if not field_definitions:
         console.print(f"[red]Aucun champ défini pour le modèle '{model_name}'.[/red]")
         return
 
-    # Demander le champ de filtre à l'utilisateur
-    field_prompt = f"Filtrer par quel champ ? ({', '.join(available_fields)})"
-    filter_field = Prompt.ask(field_prompt, choices=available_fields)
+    available_fields = list(field_definitions.keys())
 
-    # Demander la valeur de filtre
-    filter_value = Prompt.ask(f"Valeur de '{filter_field}' à filtrer")
+    # Afficher les champs disponibles numérotés (sans le nom de la variable)
+    console.print(f"\n[bold cyan]Filtrer les {model_name}s :[/bold cyan]")
+    for idx, field_name in enumerate(available_fields, start=1):
+        label = field_definitions[field_name].get("prompt", field_name)
+        console.print(f"[green]{idx}.[/green] {label}")
 
-    # Récupérer les objets filtrés
+    # Choix de l'utilisateur
+    while True:
+        try:
+            choice = int(Prompt.ask("Numéro du champ à utiliser pour filtrer"))
+            if 1 <= choice <= len(available_fields):
+                filter_field = available_fields[choice - 1]
+                break
+            else:
+                console.print("[red]Numéro invalide.[/red]")
+        except ValueError:
+            console.print("[red]Veuillez entrer un nombre valide.[/red]")
+
+    # Demande de la valeur du filtre
+    field_label = field_definitions[filter_field].get("prompt", filter_field)
+    filter_value = Prompt.ask(f"Valeur pour : {field_label}")
+
+    # Récupération filtrée
     objects = get_all_filtered(model_name, model_class, filter_field, filter_value)
 
     if not objects:
-        console.print(f"[yellow]Aucun {model_name} trouvé pour {filter_field} = {filter_value}.[/yellow]")
+        console.print(f"[yellow]Aucun {model_name} trouvé avec {field_label} = {filter_value}.[/yellow]")
         return
 
-    # Afficher la table
-    table = Table(title=f"{model_name.capitalize()}s filtrés par {filter_field} = {filter_value}")
+    # Affichage dans un tableau Rich
+    table = Table(title=f"{model_name.capitalize()}s filtrés par {field_label} = {filter_value}")
     table.add_column("ID", style="bold yellow")
     for field in available_fields:
-        table.add_column(field.replace("_", " ").title())
+        table.add_column(field_definitions[field].get("prompt", field).title())
 
     for obj in objects:
-        row = [str(getattr(obj, "id", ""))] + [str(getattr(obj, f, "")) for f in available_fields]
+        row = [str(getattr(obj, "id", ""))] + [str(getattr(obj, field, "")) for field in available_fields]
         table.add_row(*row)
 
     console.print(table)
