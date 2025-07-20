@@ -81,11 +81,12 @@ def get_all(table_name, model_class):
     conn.close()
     return [model_class(*row) for row in rows]
 
-def get_all_filtered(table_name, model_class, filter_field, filter_value):
-    conn = connect_db()
-    cursor = conn.cursor()
-    query = f"SELECT * FROM {table_name} WHERE {filter_field} = ?"
-    cursor.execute(query, (filter_value,))
-    rows = cursor.fetchall()
+def get_all_filtered(model_name, model_class, field, value, operator="="):
+    conn = get_connection()
+    cur = conn.cursor()
+    query = f"SELECT * FROM {model_name} WHERE {field} {operator} ?"
+    cur.execute(query, (value,))
+    rows = cur.fetchall()
     conn.close()
     return [model_class(*row) for row in rows]
+

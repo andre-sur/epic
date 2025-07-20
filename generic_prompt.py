@@ -167,7 +167,7 @@ def prompt_display_with_filter(model_name):
 
     # Obtenir les champs filtrables
     field_definitions = FIELD_DEFINITIONS.get(model_name)
-    print(field_definitions)
+    #print(field_definitions)
     if not field_definitions:
         console.print(f"[red]Aucun champ défini pour le modèle '{model_name}'.[/red]")
         return

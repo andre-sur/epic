@@ -9,7 +9,7 @@ from rich.prompt import Prompt
 import sentry_sdk
 from django.http import HttpResponse
 from generic_dao import *
-from generic_prompt import prompt_create,prompt_update,prompt_delete,prompt_display,prompt_display_with_filter
+from generic_prompt import prompt_create,prompt_update,prompt_delete,prompt_display,prompt_display_with_filter,display_with_filter
 from fields import FIELD_DEFINITIONS
 from models import Client,Contract,User,Event
 

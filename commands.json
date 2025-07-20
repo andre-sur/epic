@@ -23,12 +23,7 @@
     "help": "Collaborateur : liste filtrée",
     "func": "lambda ctx: prompt_display_with_filter('user')"
   },
-  {
-  "name": "liste_contrat_filtre",
-    "roles": ["commercial", "gestion","support"],
-    "help": "Contrat : liste filtrée",
-    "func": "lambda ctx: prompt_display_with_filter('contract')"
-   },
+
   {
     "name": "ajouter_contrat",
     "roles": ["gestion","commercial"],
@@ -62,8 +57,14 @@
    {
   "name": "liste_contrats_impayes",
     "roles": ["commercial", "gestion","support"],
-    "help": "Contrat : liste filtrée",
+    "help": "Contrat : impayés",
     "func": "lambda ctx: display_with_filter('contract','amount_due',0,'>')"
+   },
+   {
+  "name": "liste_contrats_non_signes",
+    "roles": ["commercial", "gestion","support"],
+    "help": "Contrat : non signés",
+    "func": "lambda ctx: display_with_filter('contract','is_signed',0,'=')"
    },
   {
     "name": "creer_evenement",
@@ -87,7 +88,7 @@
     "name": "afficher_mes_evenements",
     "roles": ["support"],
     "help": "Evenement : ma liste",
-    "func": "lambda ctx: display_with_filter('client','commercial',ctx['user'])"
+    "func": "lambda ctx: display_with_filter('client','commercial',ctx['user'],'=')"
   },
   {
     "name": "afficher_evenements",
@@ -95,18 +96,17 @@
     "help": "Evenement : liste complète",
     "func": "lambda ctx: prompt_display('event')"
   },
-  
-   {
-    "name": "afficher_evenements_vides",
-    "roles": ["gestion"],
-    "help": "Evénement : sans Support",
-    "func": "lambda ctx: display_events_nosupport(ctx['user'])"
-  },
   {
   "name": "liste_evenements_filtre",
-    "roles": ["commercial", "gestion","support"],
-    "help": "Evenements : liste filtrée",
-    "func": "lambda ctx: prompt_display_with_filter('event')"
+  "roles": ["commercial", "gestion","support"],
+  "help": "Evenements : liste filtrée",
+  "func": "lambda ctx: prompt_display_with_filter('event')"
+   },
+   {
+  "name": "liste_evenements_non_supportes",
+  "roles": ["commercial", "gestion","support"],
+  "help": "Evenements : non supportés",
+  "func": "lambda ctx: display_with_filter(model_name='event', filter_field='support_id', filter_value=None, operator='=')"
    },
   {
     "name": "creer_client",
