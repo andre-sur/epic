@@ -6,7 +6,7 @@ import json
 DB_PATH = 'epic_crm.db'
 SESSION_FILE = '.session'
 
-def generer_token_pour_utilisateur(user_id):
+def make_token(user_id):
     token = str(uuid.uuid4())
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
@@ -15,7 +15,7 @@ def generer_token_pour_utilisateur(user_id):
     conn.close()
     return token
 
-def clear_token_pour_utilisateur(user_id):
+def clear_token(user_id):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("UPDATE user SET token = NULL WHERE id = ?", (user_id,))

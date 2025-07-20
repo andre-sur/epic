@@ -1,3 +1,12 @@
+Utilisation du CRM
+
+
+Fonctionnement 
+- modèles en classes python
+- structure du menu dans json (commands.json) : autorisation, intitulé
+- choix CRUD : interface utilisateur (generic_prompt) : create, delete, update, display_all et display avec filtre paramétrable
+- fonction CRUD : conversion données de classes vers SQL (generic_dao)
+- équivalence champs de table et intitulé pour l'interface : fields.py
 
 Voir requirements.txt pour les dépendances
 

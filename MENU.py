@@ -2,15 +2,10 @@ import json
 import os
 import time
 from auth import connecter_utilisateur, deconnecter_utilisateur, save_user_session, get_cached_user
-from token_manager import generer_token_pour_utilisateur, clear_token_pour_utilisateur, save_session, clear_session
+from token_manager import make_token, clear_token, save_session, clear_session
 from rich.console import Console
 from rich.table import Table
 from rich.prompt import Prompt
-from CRUD_user import create_user, update_user, delete_user, display_users, display_role
-from CRUD_event import add_event, update_event, delete_event, display_my_events, display_all_events,display_events_nosupport
-from CRUD_client import add_client, update_client, delete_client, display_clients, display_all_clients
-from CRUD_contract import add_contract, update_contract, delete_contract, display_filtered_contracts
-from menu_client import create_client
 import sentry_sdk
 from django.http import HttpResponse
 from generic_dao import *
@@ -83,7 +78,7 @@ def main_menu(utilisateur):
 
         if choix == "0":
             console.print("[bold red]Au revoir ![/bold red]")
-            clear_token_pour_utilisateur(utilisateur['id'])
+            clear_token(utilisateur['id'])
             clear_session()
             deconnecter_utilisateur()
             print("✅ Token supprimé, utilisateur déconnecté.")
