@@ -165,22 +165,19 @@ def prompt_display_with_filter(model_name):
         console.print(f"[red]Modèle '{model_name}' inconnu.[/red]")
         return
 
-    # Obtenir les champs filtrables
     field_definitions = FIELD_DEFINITIONS.get(model_name)
-    #print(field_definitions)
     if not field_definitions:
         console.print(f"[red]Aucun champ défini pour le modèle '{model_name}'.[/red]")
         return
 
     available_fields = list(field_definitions.keys())
 
-    # Afficher les champs disponibles numérotés (sans le nom de la variable)
     console.print(f"\n[bold cyan]Filtrer les {model_name}s :[/bold cyan]")
     for idx, field_name in enumerate(available_fields, start=1):
         label = field_definitions[field_name].get("prompt", field_name)
         console.print(f"[green]{idx}.[/green] {label}")
 
-    # Choix de l'utilisateur
+    # Choix du champ
     while True:
         try:
             choice = int(Prompt.ask("Numéro du champ à utiliser pour filtrer"))
@@ -192,28 +189,16 @@ def prompt_display_with_filter(model_name):
         except ValueError:
             console.print("[red]Veuillez entrer un nombre valide.[/red]")
 
-    # Demande de la valeur du filtre
+    # Choix de l'opérateur
+    operator = Prompt.ask("Opérateur (par défaut '=')", default="=")
+
+    # Saisie de la valeur
     field_label = field_definitions[filter_field].get("prompt", filter_field)
     filter_value = Prompt.ask(f"Valeur pour : {field_label}")
 
-    # Récupération filtrée
-    objects = get_all_filtered(model_name, model_class, filter_field, filter_value)
+    # Appel de la fonction d'affichage
+    display_with_filter(model_name, filter_field, filter_value, operator)
 
-    if not objects:
-        console.print(f"[yellow]Aucun {model_name} trouvé avec {field_label} = {filter_value}.[/yellow]")
-        return
-
-    # Affichage dans un tableau Rich
-    table = Table(title=f"{model_name.capitalize()}s filtrés par {field_label} = {filter_value}")
-    table.add_column("ID", style="bold yellow")
-    for field in available_fields:
-        table.add_column(field_definitions[field].get("prompt", field).title())
-
-    for obj in objects:
-        row = [str(getattr(obj, "id", ""))] + [str(getattr(obj, field, "")) for field in available_fields]
-        table.add_row(*row)
-
-    console.print(table)
 
 def display_with_filter(model_name: str, filter_field: str, filter_value, operator: str = "="):
     model_class = MODEL_CLASSES.get(model_name)
