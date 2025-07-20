@@ -2,7 +2,7 @@
 
 FIELD_DEFINITIONS = {
     "client": {
-        "id": {"type": "int", "prompt": "ID"},
+        #"id": {"type": "int", "prompt": "ID"},
         "full_name": {"type": "str", "prompt": "Nom complet"},
         "email": {"type": "str", "prompt": "Email"},
         "phone": {"type": "str", "prompt": "Téléphone"},
@@ -12,7 +12,7 @@ FIELD_DEFINITIONS = {
         "commercial_id": {"type": "int", "prompt": "ID du commercial"},
     },
     "contract": {
-        "id": {"type": "int", "prompt": "ID"},
+        #"id": {"type": "int", "prompt": "ID"},
         "title": {"type": "str", "prompt": "Titre du contrat"},
         "description": {"type": "str", "prompt": "Description"},
         "status": {"type": "str", "prompt": "Statut"},
@@ -22,7 +22,7 @@ FIELD_DEFINITIONS = {
         "commercial_id": {"type": "int", "prompt": "ID du commercial"},
     },
     "user": {
-        "id": {"type": "int", "prompt": "ID"},
+        #"id": {"type": "int", "prompt": "ID"},
         "username": {"type": "str", "prompt": "Nom d'utilisateur"},
         "email": {"type": "str", "prompt": "Email"},
         "role": {"type": "str", "prompt": "Rôle"},
@@ -30,7 +30,7 @@ FIELD_DEFINITIONS = {
         "created_at": {"type": "date", "prompt": "Date de création (AAAA-MM-JJ)"},
     },
     "event": {
-        "id": {"type": "int", "prompt": "ID"},
+        #"id": {"type": "int", "prompt": "ID"},
         "title": {"type": "str", "prompt": "Titre de l'événement"},
         "description": {"type": "str", "prompt": "Description"},
         "date": {"type": "date", "prompt": "Date de l'événement (AAAA-MM-JJ)"},

@@ -21,7 +21,7 @@
     "name": "liste_utilisateurs",
     "roles": ["commercial", "gestion", "support"],
     "help": "Collaborateur : liste complète",
-    "func": "lambda ctx: display_users()"
+    "func": "lambda ctx: prompt_display('user')"
   },
    {
     "name": "liste_utilisateurs_specifiques",
@@ -57,7 +57,7 @@
     "name": "liste_all_contrats",
     "roles": ["commercial", "gestion", "support"],
     "help": "Contrat : liste complète",
-    "func": "lambda ctx: display_filtered_contracts(None, 0, 0)"
+    "func": "lambda ctx: prompt_display('contract')"
   },
   {
     "name": "contrats_non_signes",
@@ -87,7 +87,7 @@
     "name": "supprimer_evenement",
     "roles": ["gestion"],
     "help": "Evenement : supprimer",
-    "func": "lambda ctx: delete_event(ctx['user'])"
+    "func": "lambda ctx: prompt_delete('event')"
   },
   {
     "name": "afficher_mes_evenements",
@@ -99,7 +99,7 @@
     "name": "afficher_evenements",
     "roles": ["commercial", "gestion", "support"],
     "help": "Evenement : liste complète",
-    "func": "lambda ctx: display_all_events(ctx['user'])"
+    "func": "lambda ctx: prompt_display('event')"
   },
    {
     "name": "afficher_evenements_vides",
@@ -129,12 +129,16 @@
     "name": "afficher_mes_clients",
     "roles": ["commercial"],
     "help": "Client : liste du collaborateur en ligne",
-    "func": "lambda ctx: display_clients(ctx['user'])"
+    "func": "lambda ctx: prompt_display('client',client, fields_to_show=None)"
   },
    {
     "name": "afficher_clients",
     "roles": ["commercial", "gestion","support"],
     "help": "Client : liste complète",
-    "func": "lambda ctx: display_all_clients(ctx['user'])"
-  }
+    "func": "lambda ctx: prompt_display('client')"
+  },
+  "name": "afficher_clients_filtre",
+    "roles": ["commercial", "gestion","support"],
+    "help": "Client : liste filtrée",
+    "func": "lambda ctx: prompt_display_with_filter('client')"
 ]

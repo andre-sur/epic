@@ -58,3 +58,12 @@ def get_all(table_name, model_class):
     rows = cursor.fetchall()
     conn.close()
     return [model_class(*row) for row in rows]
+
+def get_all_filtered(table_name, model_class, filter_field, filter_value):
+    conn = connect_db()
+    cursor = conn.cursor()
+    query = f"SELECT * FROM {table_name} WHERE {filter_field} = ?"
+    cursor.execute(query, (filter_value,))
+    rows = cursor.fetchall()
+    conn.close()
+    return [model_class(*row) for row in rows]

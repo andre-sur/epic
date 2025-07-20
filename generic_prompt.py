@@ -132,23 +132,65 @@ def prompt_delete(model_name):
         console.print("[yellow]Suppression annulée.[/yellow]")
         return False
 
+def prompt_display(model_name):
+    model_class = MODEL_CLASSES.get(model_name)
+    if not model_class:
+        console.print(f"[red]Modèle '{model_name}' inconnu.[/red]")
+        return
+    
+    # Récupérer tous les objets
+    objects = get_all(table_name=model_name, model_class=model_class)
+    fields_to_show = list(FIELD_DEFINITIONS[model_name].keys())
 
-
-def prompt_display(model_name, objects):
-    """Affiche une liste d’objets dans un tableau."""
-    fields = FIELD_DEFINITIONS[model_name]
-    table = Table(title=f"{model_name.capitalize()}s", show_header=True, header_style="bold magenta")
-
+    table = Table(title=f"{model_name.capitalize()}s")
     table.add_column("ID", style="bold yellow")
-    for field in fields:
+    for field in fields_to_show:
         table.add_column(field.replace("_", " ").title())
-
+    
     if not objects:
         console.print(f"[yellow]Aucun {model_name} trouvé.[/yellow]")
         return
+    
+    for obj in objects:
+        row = [str(getattr(obj, "id", ""))] + [str(getattr(obj, field, "")) for field in fields_to_show]
+        table.add_row(*row)
+    
+    console.print(table)
+
+def prompt_display_with_filter(model_name):
+    model_class = MODEL_CLASSES.get(model_name)
+    if not model_class:
+        console.print(f"[red]Modèle '{model_name}' inconnu.[/red]")
+        return
+
+    # Liste des champs disponibles
+    available_fields = list(FIELD_DEFINITIONS[model_name].keys())
+    if not available_fields:
+        console.print(f"[red]Aucun champ défini pour le modèle '{model_name}'.[/red]")
+        return
+
+    # Demander le champ de filtre à l'utilisateur
+    field_prompt = f"Filtrer par quel champ ? ({', '.join(available_fields)})"
+    filter_field = Prompt.ask(field_prompt, choices=available_fields)
+
+    # Demander la valeur de filtre
+    filter_value = Prompt.ask(f"Valeur de '{filter_field}' à filtrer")
+
+    # Récupérer les objets filtrés
+    objects = get_all_filtered(model_name, model_class, filter_field, filter_value)
+
+    if not objects:
+        console.print(f"[yellow]Aucun {model_name} trouvé pour {filter_field} = {filter_value}.[/yellow]")
+        return
+
+    # Afficher la table
+    table = Table(title=f"{model_name.capitalize()}s filtrés par {filter_field} = {filter_value}")
+    table.add_column("ID", style="bold yellow")
+    for field in available_fields:
+        table.add_column(field.replace("_", " ").title())
 
     for obj in objects:
-        row = [str(getattr(obj, "id", ""))] + [str(getattr(obj, field, "")) for field in fields]
+        row = [str(getattr(obj, "id", ""))] + [str(getattr(obj, f, "")) for f in available_fields]
         table.add_row(*row)
 
     console.print(table)
