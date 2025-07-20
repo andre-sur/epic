@@ -214,3 +214,36 @@ def prompt_display_with_filter(model_name):
         table.add_row(*row)
 
     console.print(table)
+
+def display_with_filter(model_name: str, filter_field: str, filter_value, operator: str = "="):
+    model_class = MODEL_CLASSES.get(model_name)
+    if not model_class:
+        console.print(f"[red]Modèle '{model_name}' inconnu.[/red]")
+        return
+
+    # Vérifie que le champ est bien défini
+    field_definitions = FIELD_DEFINITIONS.get(model_name)
+    if not field_definitions or filter_field not in field_definitions:
+        console.print(f"[red]Champ '{filter_field}' invalide pour le modèle '{model_name}'.[/red]")
+        return
+
+    # Requête filtrée avec opérateur
+    objects = get_all_filtered(model_name, model_class, filter_field, filter_value, operator)
+
+    if not objects:
+        console.print(f"[yellow]Aucun {model_name} trouvé avec {filter_field} {operator} {filter_value}.[/yellow]")
+        return
+
+    # Affichage avec Rich
+    available_fields = list(field_definitions.keys())
+    table = Table(title=f"{model_name.capitalize()}s filtrés par {filter_field} {operator} {filter_value}")
+    table.add_column("ID", style="bold yellow")
+    for field in available_fields:
+        label = field_definitions[field].get("prompt", field)
+        table.add_column(label.title())
+
+    for obj in objects:
+        row = [str(getattr(obj, "id", ""))] + [str(getattr(obj, field, "")) for field in available_fields]
+        table.add_row(*row)
+
+    console.print(table)

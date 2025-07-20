@@ -59,6 +59,12 @@
     "help": "Contrat : liste filtrée",
     "func": "lambda ctx: prompt_display_with_filter('contract')"
    },
+   {
+  "name": "liste_contrats_impayes",
+    "roles": ["commercial", "gestion","support"],
+    "help": "Contrat : liste filtrée",
+    "func": "lambda ctx: display_with_filter('contract','amount_due',0,'>')"
+   },
   {
     "name": "creer_evenement",
     "roles": ["commercial"],
@@ -81,7 +87,7 @@
     "name": "afficher_mes_evenements",
     "roles": ["support"],
     "help": "Evenement : ma liste",
-    "func": "lambda ctx: display_my_events(ctx['user'])"
+    "func": "lambda ctx: display_with_filter('client','commercial',ctx['user'])"
   },
   {
     "name": "afficher_evenements",
