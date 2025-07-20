@@ -106,7 +106,7 @@
   "name": "liste_evenements_non_supportes",
   "roles": ["commercial", "gestion","support"],
   "help": "Evenements : non supportés",
-  "func": "lambda ctx: display_with_filter(model_name='event', filter_field='support_id', filter_value=None, operator='=')"
+  "func": "lambda ctx: display_with_filter(model_name='event', filter_field='support_id', filter_value=0, operator='=')"
    },
   {
     "name": "creer_client",
