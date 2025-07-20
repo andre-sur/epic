@@ -1,7 +1,7 @@
 import json
 import os
 import time
-from auth import login, logout, save_user_session, get_cached_user
+from auth import login, logout, save_user_session, get_cached_user, is_token_valid
 from token_manager import make_token, clear_token, save_session, clear_session
 from rich.console import Console
 from rich.table import Table

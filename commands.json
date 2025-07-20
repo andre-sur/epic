@@ -3,19 +3,19 @@
     "name": "ajouter_utilisateur",
     "roles": ["gestion"],
     "help": "Collaborateur : créer",
-    "func": "lambda ctx: create_user()"
+    "func": "lambda ctx: prompt_create('user')"
   },
   {
     "name": "modifier_utilisateur",
     "roles": ["gestion"],
     "help": "Collaborateur : modifier",
-    "func": "lambda ctx: update_user()"
+    "func": "lambda ctx: prompt_update('user')"
   },
   {
     "name": "supprimer_utilisateur",
     "roles": ["gestion"],
     "help": "Collaborateur : supprimer",
-    "func": "lambda ctx: delete_user()"
+    "func": "lambda ctx: prompt_delete('user')"
   },
   {
     "name": "liste_utilisateurs_filtre",
