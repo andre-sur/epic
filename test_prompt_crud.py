@@ -74,3 +74,51 @@ def test_prompt_update_client(mock_field_definitions):
         assert updated_data["full_name"] == "Jean Martin"
         assert updated_data["commercial_id"] == 6
         mock_update.assert_called_once()
+
+import pytest
+from generic_dao import *
+from models import Client
+
+@pytest.fixture
+def dummy_client():
+    client = Client(
+        id=None,
+        full_name="Test Client",
+        email="test@example.com",
+        phone="0000000000",
+        company_name="TestCorp",
+        created_date="2023-01-01",
+        last_contact_date="2023-01-15",
+        commercial_id=1
+    )
+    create("client", client, fields=[
+        "full_name", "email", "phone", "company_name",
+        "created_date", "last_contact_date", "commercial_id"
+    ])
+    return client
+
+def test_get_by_id(dummy_client):
+    fetched = get_by_id("client", Client, 1)
+    assert fetched is not None
+    assert fetched.full_name == "Test Client"
+
+def test_get_all(dummy_client):
+    results = get_all("client", Client)
+    assert isinstance(results, list)
+    assert any(c.full_name == "Test Client" for c in results)
+
+def test_get_all_filtered(dummy_client):
+    results = get_all_filtered("client", Client, "email", "test@example.com")
+    assert len(results) >= 1
+    assert results[0].email == "test@example.com"
+
+def test_update(dummy_client):
+    dummy_client.full_name = "Updated Name"
+    update("client", dummy_client, fields=["full_name"])
+    updated = get_by_id("client", Client, dummy_client.id)
+    assert updated.full_name == "Updated Name"
+
+def test_delete(dummy_client):
+    delete("client", dummy_client.id)
+    deleted = get_by_id("client", Client, dummy_client.id)
+    assert deleted is None

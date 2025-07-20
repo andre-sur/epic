@@ -4,6 +4,8 @@ from rich.table import Table
 from fields import FIELD_DEFINITIONS
 from generic_dao import *
 from models import *
+from database import get_connection
+
 
 console = Console()
 

@@ -1,24 +1,46 @@
 # generic_dao.py
 
 import sqlite3
+from database import get_connection
+
 
 DB_NAME = "epic_crm.db"
 
 def connect_db():
     return sqlite3.connect(DB_NAME)
 
+
 def create(table_name, obj, fields):
-    conn = connect_db()
-    cursor = conn.cursor()
-    placeholders = ', '.join(['?'] * len(fields))
-    field_list = ', '.join(fields)
-    values = tuple(getattr(obj, field) for field in fields)
-    cursor.execute(f"""
-        INSERT INTO {table_name} ({field_list})
-        VALUES ({placeholders})
-    """, values)
-    conn.commit()
-    conn.close()
+    """
+    Insère un objet dans la table donnée et assigne l'ID généré automatiquement.
+    
+    :param table_name: Nom de la table dans la base de données.
+    :param obj: Objet Python à insérer.
+    :param fields: Liste des attributs de l'objet à insérer.
+    :return: L'objet avec l'ID mis à jour.
+    """
+    conn = get_connection()
+    cur = conn.cursor()
+
+    columns = ", ".join(fields)
+    placeholders = ", ".join(["?"] * len(fields))
+    values = [getattr(obj, field) for field in fields]
+
+    query = f"INSERT INTO {table_name} ({columns}) VALUES ({placeholders})"
+    
+    try:
+        cur.execute(query, values)
+        conn.commit()
+        obj.id = cur.lastrowid  # Assigne l'ID généré à l'objet
+    except sqlite3.Error as e:
+        print(f"Erreur lors de l'insertion dans {table_name} : {e}")
+        conn.rollback()
+        raise e
+    finally:
+        cur.close()
+        conn.close()
+
+    return obj
 
 def get_by_id(table_name, model_class, obj_id):
     conn = connect_db()
