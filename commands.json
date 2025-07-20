@@ -9,7 +9,7 @@
     "name": "modifier_utilisateur",
     "roles": ["gestion"],
     "help": "Collaborateur : modifier",
-    "func": "lambda ctx: prompt_update('user')"
+    "func": "lambda ctx: prompt_update(ctx['user'],'user')"
   },
   {
     "name": "supprimer_utilisateur",
@@ -33,61 +33,43 @@
     "name": "ajouter_contrat",
     "roles": ["gestion","commercial"],
     "help": "Contrat: créer",
-    "func": "lambda ctx: add_contract(ctx['user'])"
+    "func": "lambda ctx: prompt_create('contract')"
   },
   {
     "name": "modifier_contrat",
     "roles": ["gestion", "commercial"],
     "help": "Contrat: modifier",
-    "func": "lambda ctx: update_contract(ctx['user'])"
+    "func": "lambda ctx: prompt_update(ctx['user'],'contract')"
   },
   {
     "name": "supprimer_contrat",
     "roles": ["gestion"],
     "help": "Contrat : supprimer",
-    "func": "lambda ctx: delete_contract(ctx['user'])"
-  },
-  {
-    "name": "liste_contrats",
-    "roles": ["commercial"],
-    "help": "Contrat : liste collaborateur en ligne",
-    "func": "lambda ctx: display_filtered_contracts(ctx['user'], 0, 0)"
+    "func": "lambda ctx: prompt_delete('contract')"
   },
    {
-    "name": "liste_all_contrats",
+    "name": "list_all_contrats",
     "roles": ["commercial", "gestion", "support"],
     "help": "Contrat : liste complète",
     "func": "lambda ctx: prompt_display('contract')"
   },
   {
-  "name": "afficher_contrats_filtre",
+  "name": "liste_contrats_filtre",
     "roles": ["commercial", "gestion","support"],
     "help": "Contrat : liste filtrée",
     "func": "lambda ctx: prompt_display_with_filter('contract')"
    },
   {
-    "name": "contrats_non_signes",
-    "roles": ["commercial"],
-    "help": "Contrat : non signés",
-    "func": "lambda ctx: display_filtered_contracts(ctx['user'], 0, 1)"
-  },
-  {
-    "name": "contrats_non_payes",
-    "roles": ["commercial"],
-    "help": "Contrat : non payés",
-    "func": "lambda ctx: display_filtered_contracts(ctx['user'], 1, 0)"
-  },
-  {
     "name": "creer_evenement",
     "roles": ["commercial"],
     "help": "Evenement : créer",
-    "func": "lambda ctx: add_event(ctx['user'])"
+    "func": "lambda ctx: prompt_create('event')"
   },
   {
     "name": "modifier_evenement",
     "roles": ["gestion", "support"],
     "help": "Evenement : modifier",
-    "func": "lambda ctx: update_event(ctx['user'])"
+    "func": "lambda ctx: prompt_update(ctx['user'],'event')"
   },
   {
     "name": "supprimer_evenement",
@@ -98,7 +80,7 @@
   {
     "name": "afficher_mes_evenements",
     "roles": ["support"],
-    "help": "Evenement : liste pour collaborateur en ligne",
+    "help": "Evenement : ma liste",
     "func": "lambda ctx: display_my_events(ctx['user'])"
   },
   {
@@ -124,7 +106,7 @@
     "name": "creer_client",
     "roles": ["commercial"],
     "help": "Client : créer",
-    "func": "lambda ctx: prompt_create(ctx['user'])"
+    "func": "lambda ctx: prompt_create('client')"
   },
   {
     "name": "modifier_client",
@@ -141,8 +123,8 @@
   {
     "name": "afficher_mes_clients",
     "roles": ["commercial"],
-    "help": "Client : liste du collaborateur en ligne",
-    "func": "lambda ctx: prompt_display('client',client, fields_to_show=None)"
+    "help": "Client : ma liste",
+    "func": "lambda ctx: prompt_display('client')"
   },
    {
     "name": "afficher_clients",

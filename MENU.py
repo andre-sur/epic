@@ -51,47 +51,56 @@ def main_menu(utilisateur):
     commands = load_commands()
 
     while True:
-        console.clear()
-        console.rule(f"[bold cyan]📜 Menu des commandes – {utilisateur['name']} ({utilisateur['role']})[/bold cyan]")
-
-        # Filtrer par rôle
-        accessible_cmds = [cmd for cmd in commands if utilisateur["role"] in cmd["roles"]]
-
-        # Trier par description (help)
-        accessible_cmds.sort(key=lambda c: c["help"])
-
-        table = Table(show_header=True, header_style="bold magenta")
-        table.add_column("N°", style="cyan")
-        table.add_column("Description", style="green")
-
-        for idx, cmd in enumerate(accessible_cmds, start=1):
-            table.add_row(str(idx), cmd["help"])
-
-        table.add_row("0", "[red]Déconnecter & Quitter[/red]")
-
-        console.print(table)
-
-        choix = Prompt.ask(
-            "Choisissez un numéro",
-            choices=[str(i) for i in range(len(accessible_cmds)+1)]
-        )
-
-        if choix == "0":
-            console.print("[bold red]Au revoir ![/bold red]")
+        # ✅ Vérifier que le token est toujours valide
+        if not is_token_valid(utilisateur.get("token")):
+            console.print("[red]⛔️ Token expiré. Déconnexion en cours...[/red]")
             clear_token(utilisateur['id'])
             clear_session()
             logout()
-            print("✅ Token supprimé, utilisateur déconnecté.")
-            break
-        else:
-            idx = int(choix) - 1
-            ctx = {"user": utilisateur}  # ctx contient l’utilisateur
-            try:
-                accessible_cmds[idx]["func"](ctx)
-            except Exception as e:
-                console.print(f"[red]Erreur lors de l'exécution : {e}[/red]")
+            return
+    
+        while True:
+            console.clear()
+            console.rule(f"[bold cyan]📜 Menu des commandes – {utilisateur['name']} ({utilisateur['role']})[/bold cyan]")
 
-        console.input("\n[grey]Appuyez sur Entrée pour continuer...[/grey]")
+            # Filtrer par rôle
+            accessible_cmds = [cmd for cmd in commands if utilisateur["role"] in cmd["roles"]]
+
+            # Trier par description (help)
+            accessible_cmds.sort(key=lambda c: c["help"])
+
+            table = Table(show_header=True, header_style="bold magenta")
+            table.add_column("N°", style="cyan")
+            table.add_column("Description", style="green")
+
+            for idx, cmd in enumerate(accessible_cmds, start=1):
+                table.add_row(str(idx), cmd["help"])
+
+            table.add_row("0", "[red]Déconnecter & Quitter[/red]")
+
+            console.print(table)
+
+            choix = Prompt.ask(
+                "Choisissez un numéro",
+                choices=[str(i) for i in range(len(accessible_cmds)+1)]
+            )
+
+            if choix == "0":
+                console.print("[bold red]Au revoir ![/bold red]")
+                clear_token(utilisateur['id'])
+                clear_session()
+                logout()
+                print("✅ Token supprimé, utilisateur déconnecté.")
+                break
+            else:
+                idx = int(choix) - 1
+                ctx = {"user": utilisateur}  # ctx contient l’utilisateur
+                try:
+                    accessible_cmds[idx]["func"](ctx)
+                except Exception as e:
+                    console.print(f"[red]Erreur lors de l'exécution : {e}[/red]")
+
+            console.input("\n[grey]Appuyez sur Entrée pour continuer...[/grey]")
 
 # === Point d’entrée ===
 if __name__ == "__main__":

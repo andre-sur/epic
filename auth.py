@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 DB_PATH = 'epic_crm.db'
 SESSION_FILE = ".session"
 SECRET_KEY = "supersecretkey"
-TOKEN_EXP_MINUTES = 30
+TOKEN_EXP_MINUTES = 3
 _current_user = None
 
 
