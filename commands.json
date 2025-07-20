@@ -60,6 +60,12 @@
     "func": "lambda ctx: prompt_display('contract')"
   },
   {
+  "name": "afficher_contrats_filtre",
+    "roles": ["commercial", "gestion","support"],
+    "help": "Contrat : liste filtrée",
+    "func": "lambda ctx: prompt_display_with_filter('contract')"
+   },
+  {
     "name": "contrats_non_signes",
     "roles": ["commercial"],
     "help": "Contrat : non signés",
@@ -137,8 +143,10 @@
     "help": "Client : liste complète",
     "func": "lambda ctx: prompt_display('client')"
   },
+   {
   "name": "afficher_clients_filtre",
     "roles": ["commercial", "gestion","support"],
     "help": "Client : liste filtrée",
     "func": "lambda ctx: prompt_display_with_filter('client')"
+   }
 ]

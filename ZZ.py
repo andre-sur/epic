@@ -14,9 +14,9 @@ from menu_client import create_client
 import sentry_sdk
 from django.http import HttpResponse
 from generic_dao import *
-from generic_prompt import prompt_create,prompt_update,prompt_delete,prompt_display
+from generic_prompt import prompt_create,prompt_update,prompt_delete,prompt_display,prompt_display_with_filter
 from fields import FIELD_DEFINITIONS
-from models import Client
+from models import Client,Contract,User,Event
 
 console = Console()
 
