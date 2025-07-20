@@ -3,7 +3,15 @@ from typing import Optional
 
 
 class User:
-    def __init__(self, id: int, name: str, email: str, password: str, role: str, token: Optional[str] = None):
+    def __init__(
+        self,
+        id: Optional[int] = None,
+        name: str = "",
+        email: str = "",
+        password: str = "",
+        role: str = "",
+        token: Optional[str] = None,
+    ):
         assert role in ("gestion", "commercial", "support"), "Rôle invalide"
         self.id = id
         self.name = name
@@ -19,14 +27,14 @@ class User:
 class Client:
     def __init__(
         self,
-        id: int,
-        full_name: str,
-        email: str,
-        phone: Optional[str],
-        company_name: Optional[str],
-        created_date: Optional[str],
-        last_contact_date: Optional[str],
-        commercial_id: int,
+        id: Optional[int] = None,
+        full_name: str = "",
+        email: str = "",
+        phone: Optional[str] = None,
+        company_name: Optional[str] = None,
+        created_date: Optional[str] = None,
+        last_contact_date: Optional[str] = None,
+        commercial_id: int = 0,
     ):
         self.id = id
         self.full_name = full_name
@@ -44,13 +52,13 @@ class Client:
 class Contract:
     def __init__(
         self,
-        id: int,
-        client_id: int,
-        commercial_id: int,
-        total_amount: float,
-        amount_due: float,
-        created_date: str,
-        is_signed: bool,
+        id: Optional[int] = None,
+        client_id: int = 0,
+        commercial_id: int = 0,
+        total_amount: float = 0.0,
+        amount_due: float = 0.0,
+        created_date: str = "",
+        is_signed: bool = False,
     ):
         self.id = id
         self.client_id = client_id
@@ -67,14 +75,14 @@ class Contract:
 class Event:
     def __init__(
         self,
-        id: int,
-        contract_id: int,
-        support_id: Optional[int],
-        start_date: Optional[str],
-        end_date: Optional[str],
-        location: Optional[str],
-        attendees: Optional[int],
-        notes: Optional[str],
+        id: Optional[int] = None,
+        contract_id: int = 0,
+        support_id: Optional[int] = None,
+        start_date: Optional[str] = None,
+        end_date: Optional[str] = None,
+        location: Optional[str] = None,
+        attendees: Optional[int] = None,
+        notes: Optional[str] = None,
     ):
         self.id = id
         self.contract_id = contract_id
