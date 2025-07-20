@@ -3,63 +3,111 @@ import getpass
 import bcrypt
 import os
 import json
+import jwt
+from datetime import datetime, timedelta
 
 DB_PATH = 'epic_crm.db'
-_current_user = None
 SESSION_FILE = ".session"
+SECRET_KEY = "supersecretkey"
+TOKEN_EXP_MINUTES = 30
+_current_user = None
 
-def connecter_utilisateur():
+
+def make_token(user_id):
+    exp = datetime.utcnow() + timedelta(minutes=TOKEN_EXP_MINUTES)
+    payload = {"user_id": user_id, "exp": exp}
+    return jwt.encode(payload, SECRET_KEY, algorithm="HS256")
+
+
+def is_token_valid(token):
+    try:
+        jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        return True
+    except jwt.ExpiredSignatureError:
+        print("⏰ Le token a expiré.")
+        return False
+    except jwt.InvalidTokenError:
+        print("❌ Token invalide.")
+        return False
+
+
+def login():
     global _current_user
     if _current_user:
-        print(f"🔐 Utilisateur déjà connecté : {_current_user['name']} ({_current_user['role']})")
+        print(f"🔐 Déjà connecté : {_current_user['name']} ({_current_user['role']})")
         return _current_user
 
-    print("CONNEXION DE L'UTILISATEUR NECESSAIRE")
-    print("=====================================")
-    print("Pour vous identifier, entrez Email et Mot de passe.")
+    print("CONNEXION DE L'UTILISATEUR")
+    print("==========================")
     email = input("Email : ").strip()
     if not email:
-        print("❌ L'email ne peut pas être vide.")
+        print("❌ L'email est requis.")
         return None
 
     password = getpass.getpass("Mot de passe : ").encode('utf-8')
     if not password:
-        print("❌ Le mot de passe ne peut pas être vide.")
+        print("❌ Le mot de passe est requis.")
         return None
 
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("SELECT id, name, email, password, role FROM user WHERE email = ?", (email,))
     row = cursor.fetchone()
-    conn.close()
 
     if row:
-        user_id, name, email, hashed_password, role = row
-        if bcrypt.checkpw(password, hashed_password.encode('utf-8')):
-            print(f"✅ Connecté avec succès – {name} ({role})")
-            _current_user = {'id': user_id, 'name': name, 'email': email, 'role': role}
+        user_id, name, email, hashed_pw, role = row
+        if bcrypt.checkpw(password, hashed_pw.encode('utf-8')):
+            token = make_token(user_id)
+            cursor.execute("UPDATE user SET token = ? WHERE id = ?", (token, user_id))
+            conn.commit()
+            conn.close()
+
+            _current_user = {'id': user_id, 'name': name, 'email': email, 'role': role, 'token': token}
             save_user_session(_current_user)
+            print(f"✅ Connecté : {name} ({role})")
             return _current_user
         else:
             print("❌ Mot de passe incorrect.")
     else:
         print("❌ Utilisateur non trouvé.")
+    conn.close()
     return None
 
 
-def deconnecter_utilisateur():
+def logout():
     global _current_user
     if not _current_user:
         print("ℹ️ Aucun utilisateur connecté.")
         return
+
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("UPDATE user SET token = NULL WHERE id = ?", (_current_user["id"],))
+    conn.commit()
+    conn.close()
+
     print(f"🔓 Déconnexion de {_current_user['name']}.")
     _current_user = None
 
-def get_cached_user():
     if os.path.exists(SESSION_FILE):
-        with open(SESSION_FILE, "r") as f:
-            return json.load(f)
-    return None
+        os.remove(SESSION_FILE)
+
+
+def get_cached_user():
+    if not os.path.exists(SESSION_FILE):
+        return None
+
+    with open(SESSION_FILE, "r") as f:
+        utilisateur = json.load(f)
+
+    if not utilisateur.get("token"):
+        return None
+
+    if not is_token_valid(utilisateur["token"]):
+        return None
+
+    return utilisateur
+
 
 def save_user_session(utilisateur):
     with open(SESSION_FILE, "w") as f:

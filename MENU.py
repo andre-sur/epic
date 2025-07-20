@@ -1,7 +1,7 @@
 import json
 import os
 import time
-from auth import connecter_utilisateur, deconnecter_utilisateur, save_user_session, get_cached_user
+from auth import login, logout, save_user_session, get_cached_user
 from token_manager import make_token, clear_token, save_session, clear_session
 from rich.console import Console
 from rich.table import Table
@@ -31,7 +31,7 @@ def test_sentry_message(request):
 
 DB_PATH = 'epic_crm.db'
 
-# === Charger et préparer les commandes ===
+# On récupère les données à propos des fonctions et intitulés de menu
 def load_commands():
     with open('commands.json', 'r', encoding='utf-8') as f:
         data = json.load(f)
@@ -39,14 +39,14 @@ def load_commands():
     commands = []
     for cmd in data:
         try:
-            # Eval pour transformer le texte de func en fonction Python réelle
+            # Eval pour transformer le texte de func en fonction 
             cmd["func"] = eval(cmd["func"])
             commands.append(cmd)
         except Exception as e:
             console.print(f"[red]Erreur lors du chargement de la commande {cmd['name']} : {e}[/red]")
     return commands
 
-# === Menu principal ===
+# === Menu principal automatisé selon le rôle
 def main_menu(utilisateur):
     commands = load_commands()
 
@@ -54,7 +54,7 @@ def main_menu(utilisateur):
         console.clear()
         console.rule(f"[bold cyan]📜 Menu des commandes – {utilisateur['name']} ({utilisateur['role']})[/bold cyan]")
 
-        # Filtrer selon le rôle
+        # Filtrer par rôle
         accessible_cmds = [cmd for cmd in commands if utilisateur["role"] in cmd["roles"]]
 
         # Trier par description (help)
@@ -80,7 +80,7 @@ def main_menu(utilisateur):
             console.print("[bold red]Au revoir ![/bold red]")
             clear_token(utilisateur['id'])
             clear_session()
-            deconnecter_utilisateur()
+            logout()
             print("✅ Token supprimé, utilisateur déconnecté.")
             break
         else:
@@ -96,17 +96,37 @@ def main_menu(utilisateur):
 # === Point d’entrée ===
 if __name__ == "__main__":
     utilisateur = get_cached_user()
-
-    # Tant qu’on n’a pas d’utilisateur valide, on redemande
+    # Si pas valide, redemandez
     while not utilisateur:
-        utilisateur = connecter_utilisateur()
+        utilisateur = login()
         if utilisateur:
             save_user_session(utilisateur)
         else:
             print("⛔️ Connexion échouée, réessayez.\n")
 
-    # Optionnel : si tu veux gérer un token
-    # token = generer_token_pour_utilisateur(utilisateur['id'])
-    # utilisateur['token'] = token
+    # générer un token
+def start():
+    utilisateur = get_cached_user()
+
+    if utilisateur and not is_token_valid(utilisateur.get("token")):
+        print("🔐 Token expiré ou invalide. Veuillez vous reconnecter.")
+        clear_user_session()
+        utilisateur = None
+
+    while not utilisateur:
+        email = Prompt.ask("Email")
+        password = Prompt.ask("Mot de passe", password=True)
+        token = login(email, password)
+
+        if token:
+            utilisateur = get_by_field("user", User, "email", email)[0]
+            utilisateur_dict = utilisateur.__dict__
+            utilisateur_dict["token"] = token
+            save_user_session(utilisateur_dict)
+        else:
+            print("⛔ Connexion échouée. Réessayez.\n")
 
     main_menu(utilisateur)
+
+if __name__ == "__main__":
+    start()
