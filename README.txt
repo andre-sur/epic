@@ -5,6 +5,6 @@ Afin d'utiliser le CRM :
 )
 >activer l'environnement virtuel
 >lancer le programme MENU (>python MENU.py)
-> pour la première fois, passez par l'admin : admin@admin.fr, mot de passe : admin
+> pour la première session, passez par l'admin : admin@admin.fr, mot de passe : admin
 > une fois dans le menu gestion de l'admin, créer des collaborateurs en fonction des besoins
 > sortir du menu (0) afin de se déconnecter et reconnecter avec un autre utilisateur
