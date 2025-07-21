@@ -5,6 +5,7 @@ from fields import FIELD_DEFINITIONS
 from generic_dao import *
 from models import *
 from database import get_connection
+import bcrypt
 
 
 console = Console()
@@ -232,3 +233,54 @@ def display_with_filter(model_name: str, filter_field: str, filter_value, operat
         table.add_row(*row)
 
     console.print(table)
+
+#SPECIFIQUE AVEC MOT DE PASS HASHED POUR CREATE USER
+def prompt_create_user():
+    fields = FIELD_DEFINITIONS["user"]
+    data = {}
+
+    for field_name, field_info in fields.items():
+        if field_name == "id":
+            continue  # Auto-incrémenté
+
+        prompt_text = field_info.get("prompt", f"Entrez {field_name}")
+        default = field_info.get("default", None)
+
+        # Cas spécial : mot de passe
+        if field_name == "password":
+            while True:
+                pwd = Prompt.ask(prompt_text, password=True)
+                confirm = Prompt.ask("Confirmez le mot de passe", password=True)
+                if pwd == confirm:
+                    hashed = bcrypt.hashpw(pwd.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+                    data[field_name] = hashed
+                    break
+                else:
+                    print("❌ Les mots de passe ne correspondent pas.")
+            continue
+
+        # Pour les autres champs
+        if default:
+            value = Prompt.ask(prompt_text, default=default)
+        else:
+            value = Prompt.ask(prompt_text)
+
+        field_type = field_info.get("type", "str")
+        if field_type == "int":
+            value = int(value)
+        elif field_type == "float":
+            value = float(value)
+
+        data[field_name] = value
+
+    # Créer l'utilisateur
+    obj = User(**data)
+
+    create(
+        table_name="user",
+        obj=obj,
+        fields=data.keys()
+    )
+
+    print("✅ Utilisateur créé avec succès.")
+    return obj

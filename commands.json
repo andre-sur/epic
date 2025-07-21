@@ -3,7 +3,7 @@
     "name": "ajouter_utilisateur",
     "roles": ["gestion"],
     "help": "Collaborateur : créer",
-    "func": "lambda ctx: prompt_create('user')"
+    "func": "lambda ctx: prompt_create_user()"
   },
   {
     "name": "modifier_utilisateur",
