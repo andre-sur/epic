@@ -18,10 +18,10 @@
     "func": "lambda ctx: prompt_delete('user')"
   },
   {
-    "name": "liste_utilisateurs_filtre",
+    "name": "list_all_users",
     "roles": ["commercial", "gestion", "support"],
-    "help": "Collaborateur : liste filtrée",
-    "func": "lambda ctx: prompt_display_with_filter('user')"
+    "help": "Collaborateur : liste complète",
+    "func": "lambda ctx: prompt_display('user')"
   },
 
   {
@@ -48,12 +48,6 @@
     "help": "Contrat : liste complète",
     "func": "lambda ctx: prompt_display('contract')"
   },
-  {
-  "name": "liste_contrats_filtre",
-    "roles": ["commercial", "gestion","support"],
-    "help": "Contrat : liste filtrée",
-    "func": "lambda ctx: prompt_display_with_filter('contract')"
-   },
    {
   "name": "liste_contrats_impayes",
     "roles": ["commercial", "gestion","support"],
@@ -88,7 +82,7 @@
     "name": "afficher_mes_evenements",
     "roles": ["support"],
     "help": "Evenement : ma liste",
-    "func": "lambda ctx: display_with_filter('client','commercial',ctx['user'],'=')"
+    "func": "lambda ctx: display_with_filter('model_name='event', filter_field='support_id', filter_value=ctx['user'], operator='=')"
   },
   {
     "name": "afficher_evenements",
@@ -96,12 +90,6 @@
     "help": "Evenement : liste complète",
     "func": "lambda ctx: prompt_display('event')"
   },
-  {
-  "name": "liste_evenements_filtre",
-  "roles": ["commercial", "gestion","support"],
-  "help": "Evenements : liste filtrée",
-  "func": "lambda ctx: prompt_display_with_filter('event')"
-   },
    {
   "name": "liste_evenements_non_supportes",
   "roles": ["commercial", "gestion","support"],
@@ -137,11 +125,5 @@
     "roles": ["commercial", "gestion","support"],
     "help": "Client : liste complète",
     "func": "lambda ctx: prompt_display('client')"
-  },
-   {
-  "name": "afficher_clients_filtre",
-    "roles": ["commercial", "gestion","support"],
-    "help": "Client : liste filtrée",
-    "func": "lambda ctx: prompt_display_with_filter('client')"
-   }
+  }
 ]
