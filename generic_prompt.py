@@ -256,7 +256,7 @@ def prompt_create_user():
                     data[field_name] = hashed
                     break
                 else:
-                    print("❌ Les mots de passe ne correspondent pas.")
+                    print(" Les mots de passe ne correspondent pas.")
             continue
 
         # Pour les autres champs

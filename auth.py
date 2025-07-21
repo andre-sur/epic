@@ -27,26 +27,26 @@ def is_token_valid(token):
         print("⏰ Le token a expiré.")
         return False
     except jwt.InvalidTokenError:
-        print("❌ Token invalide.")
+        print("Erreur- Token invalide.")
         return False
 
 
 def login():
     global _current_user
     if _current_user:
-        print(f"🔐 Déjà connecté : {_current_user['name']} ({_current_user['role']})")
+        print(f" Déjà connecté : {_current_user['name']} ({_current_user['role']})")
         return _current_user
 
     print("CONNEXION DE L'UTILISATEUR")
     print("==========================")
     email = input("Email : ").strip()
     if not email:
-        print("❌ L'email est requis.")
+        print(" L'email est requis.")
         return None
 
     password = getpass.getpass("Mot de passe : ").encode('utf-8')
     if not password:
-        print("❌ Le mot de passe est requis.")
+        print(" Le mot de passe est requis.")
         return None
 
     conn = sqlite3.connect(DB_PATH)
@@ -64,12 +64,12 @@ def login():
 
             _current_user = {'id': user_id, 'name': name, 'email': email, 'role': role, 'token': token}
             save_user_session(_current_user)
-            print(f"✅ Connecté : {name} ({role})")
+            print(f" Connecté : {name} ({role})")
             return _current_user
         else:
-            print("❌ Mot de passe incorrect.")
+            print(" Mot de passe incorrect.")
     else:
-        print("❌ Utilisateur non trouvé.")
+        print(" Utilisateur non trouvé.")
     conn.close()
     return None
 

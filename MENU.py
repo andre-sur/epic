@@ -53,7 +53,7 @@ def main_menu(utilisateur):
     while True:
         # ✅ Vérifier que le token est toujours valide
         if not is_token_valid(utilisateur.get("token")):
-            console.print("[red]⛔️ Token expiré. Déconnexion en cours...[/red]")
+            console.print("[red]Token expiré. Déconnexion en cours...[/red]")
             clear_token(utilisateur['id'])
             clear_session()
             logout()
@@ -61,7 +61,7 @@ def main_menu(utilisateur):
     
         while True:
             console.clear()
-            console.rule(f"[bold cyan]📜 Menu des commandes – {utilisateur['name']} ({utilisateur['role']})[/bold cyan]")
+            console.rule(f"[bold cyan]Menu des commandes – {utilisateur['name']} ({utilisateur['role']})[/bold cyan]")
 
             # Filtrer par rôle
             accessible_cmds = [cmd for cmd in commands if utilisateur["role"] in cmd["roles"]]
